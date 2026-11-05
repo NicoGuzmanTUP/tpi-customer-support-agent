@@ -1,0 +1,5 @@
+[
+  { "id": "agente-1", "nombre": "Agente de Soporte Uno", "area": "soporte" },
+  { "id": "agente-2", "nombre": "Agente de Facturación Dos", "area": "facturacion" },
+  { "id": "agente-3", "nombre": "Agente Técnico Tres", "area": "tecnica" }
+]
