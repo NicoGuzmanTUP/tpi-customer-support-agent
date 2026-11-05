@@ -1,0 +1,15 @@
+
+ RUN  v3.2.4 .
+
+stdout | tests/chat.test.ts
+🔑 Have AWS AccessKey? [33mfalse[39m
+🔑 Have AWS Secret? [33mfalse[39m
+
+ ✓ tests/chat.test.ts (16 tests) 38ms
+ ✓ tests/incidencias.test.ts (13 tests) 48ms
+
+ Test Files  2 passed (2)
+      Tests  29 passed (29)
+   Start at  18:16:25
+   Duration  428ms (transform 127ms, setup 26ms, collect 163ms, tests 86ms, environment 0ms, prepare 177ms)
+

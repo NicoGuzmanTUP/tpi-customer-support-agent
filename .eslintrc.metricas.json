@@ -1,0 +1,17 @@
+{
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module",
+    "ecmaFeatures": { "jsx": true }
+  },
+  "rules": {
+    "complexity": ["warn", 5],
+    "max-depth": ["warn", 2],
+    "max-params": ["warn", 3],
+    "max-lines-per-function": ["warn", { "max": 50, "skipComments": true, "skipBlankLines": true }],
+    "max-lines": ["warn", { "max": 300, "skipComments": true, "skipBlankLines": true }],
+    "no-magic-numbers": ["warn", { "ignore": [0, 1, -1], "ignoreArrayIndexes": true }]
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "pattern": "**/*.{ts,tsx}",
+  "ignore": ["**/node_modules/**", "**/.next/**", "**/components/ui/**", "**/tests/**"],
+  "minLines": 5,
+  "reporters": ["console"]
+}

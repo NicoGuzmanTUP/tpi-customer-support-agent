@@ -1,0 +1,68 @@
+
+./app/api/chat/route.ts
+   60:47  warning  No magic number: 1000                                                  no-magic-numbers
+   60:61  warning  No magic number: 2                                                     no-magic-numbers
+   65:8   warning  Async function 'POST' has too many lines (197). Maximum allowed is 50  max-lines-per-function
+   65:8   warning  Async function 'POST' has a complexity of 14. Maximum allowed is 5     complexity
+   82:66  warning  No magic number: 4                                                     no-magic-numbers
+  108:33  warning  No magic number: 100                                                   no-magic-numbers
+  265:7   warning  Blocks are nested too deeply (3). Maximum allowed is 2                 max-depth
+
+./app/lib/incidencias.ts
+   82:62  warning  No magic number: 2                                          no-magic-numbers
+  176:5   warning  Arrow function has a complexity of 7. Maximum allowed is 5  complexity
+
+./app/lib/utils.ts
+  31:8   warning  Async function 'retrieveContext' has too many lines (57). Maximum allowed is 50  max-lines-per-function
+  34:15  warning  No magic number: 3                                                               no-magic-numbers
+  65:12  warning  Arrow function has a complexity of 6. Maximum allowed is 5                       complexity
+
+./components/ChatArea.tsx
+   29:41  warning  No magic number: 5                                                    no-magic-numbers
+  118:24  warning  Arrow function has too many lines (66). Maximum allowed is 50         max-lines-per-function
+  118:24  warning  Arrow function has a complexity of 7. Maximum allowed is 5            complexity
+  138:13  warning  Arrow function has a complexity of 7. Maximum allowed is 5            complexity
+  144:8   warning  No magic number: 30000                                                no-magic-numbers
+  221:63  warning  Arrow function has too many lines (78). Maximum allowed is 50         max-lines-per-function
+  300:1   warning  Function 'ChatArea' has too many lines (380). Maximum allowed is 50   max-lines-per-function
+  333:45  warning  No magic number: 2                                                    no-magic-numbers
+  335:1   warning  File has too many lines (653). Maximum allowed is 300                 max-lines
+  341:41  warning  No magic number: 100                                                  no-magic-numbers
+  398:50  warning  No magic number: 2                                                    no-magic-numbers
+  401:24  warning  Async arrow function has too many lines (122). Maximum allowed is 50  max-lines-per-function
+  401:24  warning  Async arrow function has a complexity of 11. Maximum allowed is 5     complexity
+  554:64  warning  No magic number: 300                                                  no-magic-numbers
+  626:29  warning  Arrow function has a complexity of 7. Maximum allowed is 5            complexity
+
+./components/FullSourceModal.tsx
+  33:32  warning  No magic number: 100  no-magic-numbers
+  33:45  warning  No magic number: 2    no-magic-numbers
+
+./components/LeftSidebar.tsx
+   47:31  warning  Arrow function has too many lines (137). Maximum allowed is 50  max-lines-per-function
+   61:45  warning  No magic number: 50                                             no-magic-numbers
+  109:34  warning  Arrow function has too many lines (76). Maximum allowed is 50   max-lines-per-function
+  109:34  warning  Arrow function has a complexity of 6. Maximum allowed is 5      complexity
+  143:57  warning  Arrow function has a complexity of 9. Maximum allowed is 5      complexity
+
+./components/RightSidebar.tsx
+   34:25  warning  No magic number: 150                                            no-magic-numbers
+   34:48  warning  No magic number: 100                                            no-magic-numbers
+   38:15  warning  No magic number: 0.6                                            no-magic-numbers
+   39:15  warning  No magic number: 0.4                                            no-magic-numbers
+   45:32  warning  Arrow function has too many lines (152). Maximum allowed is 50  max-lines-per-function
+   51:13  warning  Arrow function has too many lines (63). Maximum allowed is 50   max-lines-per-function
+   52:30  warning  Arrow function has a complexity of 6. Maximum allowed is 5      complexity
+  156:65  warning  No magic number: 50                                             no-magic-numbers
+  171:48  warning  No magic number: 100                                            no-magic-numbers
+  171:68  warning  No magic number: 75                                             no-magic-numbers
+  182:42  warning  No magic number: 100                                            no-magic-numbers
+
+./components/TopNavBar.tsx
+  47:19  warning  Arrow function has too many lines (100). Maximum allowed is 50  max-lines-per-function
+
+./components/ui/dropdown-menu.tsx
+  62:30  warning  No magic number: 4  no-magic-numbers
+
+✖ 47 problems (0 errors, 47 warnings)
+

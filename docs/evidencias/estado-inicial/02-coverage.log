@@ -1,0 +1,31 @@
+
+ RUN  v3.2.4 .
+      Coverage enabled with v8
+
+stdout | tests/chat.test.ts
+🔑 Have AWS AccessKey? [33mfalse[39m
+🔑 Have AWS Secret? [33mfalse[39m
+
+ ✓ tests/incidencias.test.ts (13 tests) 53ms
+ ✓ tests/chat.test.ts (16 tests) 49ms
+
+ Test Files  2 passed (2)
+      Tests  29 passed (29)
+   Start at  18:16:26
+   Duration  769ms (transform 173ms, setup 39ms, collect 232ms, tests 102ms, environment 0ms, prepare 250ms)
+
+ % Coverage report from v8
+------------------|---------|----------|---------|---------|-------------------
+File              | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+------------------|---------|----------|---------|---------|-------------------
+All files         |   97.56 |    88.78 |   95.23 |   97.56 |                   
+ api/chat         |   96.33 |    86.84 |     100 |   96.33 |                   
+  route.ts        |   96.33 |    86.84 |     100 |   96.33 | 111-116,133       
+ api/tickets      |     100 |      100 |     100 |     100 |                   
+  route.ts        |     100 |      100 |     100 |     100 |                   
+ api/tickets/[id] |   94.28 |     87.5 |     100 |   94.28 |                   
+  route.ts        |   94.28 |     87.5 |     100 |   94.28 | 42-43             
+ lib              |   99.04 |    89.83 |    92.3 |   99.04 |                   
+  incidencias.ts  |     100 |    97.67 |     100 |     100 | 59                
+  utils.ts        |   97.05 |    68.75 |      50 |   97.05 | 21-22             
+------------------|---------|----------|---------|---------|-------------------

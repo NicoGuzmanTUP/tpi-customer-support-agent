@@ -1,0 +1,18 @@
+app/lib/utils.ts:64:      .filter((res: any) => res.content && res.content.text)
+app/lib/utils.ts:65:      .map((result: any, index: number) => {
+app/lib/utils.ts:82:      .filter((res: any) => res.content && res.content.text)
+app/lib/utils.ts:83:      .map((res: any) => res.content.text)
+app/api/chat/route.ts:15:const debugMessage = (msg: string, data: any = {}) => {
+app/api/chat/route.ts:129:    Check if your response fits into any category and include the category IDs in your "matched_categories" array.
+app/api/chat/route.ts:218:      (msg: any) => ({
+components/RightSidebar.tsx:103:      "updateRagSources" as any,
+components/RightSidebar.tsx:107:      "updateSidebar" as any,
+components/RightSidebar.tsx:113:        "updateRagSources" as any,
+components/RightSidebar.tsx:117:        "updateSidebar" as any,
+components/ChatArea.tsx:47:  debug: any;
+components/ChatArea.tsx:354:        "updateSidebar" as any,
+components/ChatArea.tsx:359:          "updateSidebar" as any,
+components/ChatArea.tsx:374:        "updateRagSources" as any,
+components/ChatArea.tsx:379:          "updateRagSources" as any,
+components/ChatArea.tsx:544:        handleSubmit(e as any);
+components/ChatArea.tsx:564:        ui: { type: string; props: any };
