@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 import { retrieveContext, RAGSource } from "@/app/lib/utils";
+import { crearTicket } from "@/app/lib/incidencias";
 import crypto from "crypto";
 import customerSupportCategories from "@/app/lib/customer_support_categories.json";
 
@@ -261,6 +262,14 @@ export async function POST(req: Request) {
     if (responseWithId.redirect_to_agent?.should_redirect) {
       console.log("🚨 AGENT REDIRECT TRIGGERED!");
       console.log("Reason:", responseWithId.redirect_to_agent.reason);
+      try {
+        await crearTicket(
+          latestMessage,
+          responseWithId.redirect_to_agent.reason ?? "Sin motivo informado",
+        );
+      } catch (ticketError) {
+        console.error("Error creating ticket:", ticketError);
+      }
     }
 
     // Prepare the response object
