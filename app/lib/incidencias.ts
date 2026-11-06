@@ -42,6 +42,8 @@ export class IncidenciaError extends Error {
   }
 }
 
+const JSON_INDENT = 2;
+
 const TRANSICIONES: Record<EstadoTicket, EstadoTicket[]> = {
   abierto: ["en_progreso", "cerrado"],
   en_progreso: ["abierto", "resuelto"],
@@ -79,7 +81,7 @@ async function guardarTickets(tickets: Ticket[]): Promise<void> {
   const destino = path.join(directorio, "tickets.json");
   const temporal = `${destino}.${randomUUID()}.tmp`;
   await fs.mkdir(directorio, { recursive: true });
-  await fs.writeFile(temporal, JSON.stringify(tickets, null, 2));
+  await fs.writeFile(temporal, JSON.stringify(tickets, null, JSON_INDENT));
   await fs.rename(temporal, destino);
 }
 
@@ -167,17 +169,32 @@ export function asignarAgente(id: string, agenteId: string): Promise<Ticket> {
   });
 }
 
+function coincideEstado(ticket: Ticket, estado?: EstadoTicket): boolean {
+  return !estado || ticket.estado === estado;
+}
+
+function coincideAgente(ticket: Ticket, agenteId?: string): boolean {
+  return !agenteId || ticket.agenteId === agenteId;
+}
+
+function contieneTexto(ticket: Ticket, texto?: string): boolean {
+  if (!texto) {
+    return true;
+  }
+  const buscado = texto.toLowerCase();
+  return [ticket.consulta, ticket.motivo].some((campo) =>
+    campo.toLowerCase().includes(buscado),
+  );
+}
+
 export async function filtrarTickets(
   filtro: FiltroTickets = {},
 ): Promise<Ticket[]> {
   const tickets = await leerTickets();
-  const texto = filtro.texto?.toLowerCase();
   return tickets.filter(
     (ticket) =>
-      (!filtro.estado || ticket.estado === filtro.estado) &&
-      (!filtro.agenteId || ticket.agenteId === filtro.agenteId) &&
-      (!texto ||
-        ticket.consulta.toLowerCase().includes(texto) ||
-        ticket.motivo.toLowerCase().includes(texto)),
+      coincideEstado(ticket, filtro.estado) &&
+      coincideAgente(ticket, filtro.agenteId) &&
+      contieneTexto(ticket, filtro.texto),
   );
 }
