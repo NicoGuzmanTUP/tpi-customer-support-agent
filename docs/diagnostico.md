@@ -6,15 +6,25 @@ Alcance del refactor: `app/api/chat/route.ts`, `app/lib/utils.ts` y `app/lib/inc
 
 ## 1. Calidad externa
 
-Desde la mirada del usuario, el sistema cumple su función:
+La calidad externa se evaluó como caja negra, desde la interfaz y desde la API, sin acceso al código. Como no se dispone de API key, el modelo de Anthropic se reemplazó por `scripts/modelo-falso.mjs`, que responde con el mismo formato que la API real. El procedimiento está en `docs/calidad-externa.md` y las salidas en `docs/evidencias/calidad-externa/escenarios-estado-inicial.log`.
 
-- Responde consultas de soporte usando el contexto recuperado de la base de conocimiento.
-- Informa estado de ánimo detectado, preguntas sugeridas y categorías de la consulta.
-- Deriva a un agente humano cuando corresponde y registra un ticket.
-- Permite consultar, asignar y cambiar el estado de los tickets.
-- Ante fallas del modelo, muestra un mensaje de error comprensible.
+| Atributo | Escenario | Resultado observado en `estado-inicial` | Evaluación |
+|---|---|---|---|
+| Adecuación funcional | Consulta normal | 200, con respuesta, estado de ánimo, preguntas sugeridas y categorías | Cumple |
+| Adecuación funcional | Pedido de agente humano | 200, aviso de derivación y ticket abierto en `/api/tickets` | Cumple |
+| Adecuación funcional | Asignar agente y cambiar estado | 200 en cambios válidos; 409 al cerrar un ticket en progreso | Cumple |
+| Fiabilidad | Base de conocimiento sin credenciales AWS | 200 sin contexto, en menos de 0,1 s | Cumple: degradación controlada |
+| Fiabilidad | El modelo no responde JSON | 500 con mensaje comprensible | Cumple |
+| Fiabilidad | Falla del proveedor del modelo | 500 con mensaje comprensible | Cumple |
+| Robustez de la API | Pedido sin mensajes | 500 con cuerpo vacío: error no controlado | No cumple |
+| Seguridad | Encabezado `X-Debug-Data`, visible en DevTools | Incluye `anthropicKeySlice` con los primeros 4 caracteres de la API key | No cumple |
+| Seguridad y costos | Modelo no ofrecido por la interfaz | 200: la API acepta cualquier modelo que envíe el cliente | No cumple |
 
-Evidencia: 29 pruebas de caracterización pasan (`01-tests.log`). Las pruebas simulan el SDK de Anthropic y el cliente de Bedrock, por lo que no verifican el comportamiento real del modelo ni de la base de conocimiento.
+Conclusión: desde la mirada del usuario, el sistema funciona y tolera fallas de sus dependencias. Sin embargo, un cliente externo puede observar tres defectos. Los tres tienen causa interna: la lectura del cuerpo fuera del `try` (CS-08), la construcción del encabezado de depuración y la falta de validación de entrada (CS-10). Esto muestra la relación entre ambas calidades: un problema interno termina siendo visible desde afuera.
+
+Evidencia complementaria: 29 pruebas de caracterización pasan (`01-tests.log`).
+
+Limitación: con el modelo falso no se evalúa la calidad de las respuestas del modelo real (precisión, tono ni clasificación), sino el comportamiento de la aplicación ante cada tipo de respuesta.
 
 ## 2. Calidad interna
 

@@ -1,0 +1,43 @@
+Aplicación: http://localhost:3101
+Fecha: 2026-11-05T21:59:16-03:00
+
+### 1. Consulta normal
+Pedido: {"messages":[{"role":"user","content":"¿Dónde veo mis facturas?"}],"model":"claude-haiku-4-5-20251001","knowledgeBaseId":""}
+HTTP/1.1 200 OK
+x-debug-data: {"msg":" API route called","data":{"messagesReceived":1,"latestMessageLength":24,"anthropicKeySlice":"fals****"},"timestamp":"2026-11-06T00:59:17.364Z"}
+Cuerpo: {"id":"1e3f0a73-c971-4ec3-aed3-28cb112d8c4a","response":"Podés ver y descargar tus facturas desde la sección Facturación de tu cuenta.","thinking":"Respuesta simulada por scripts/modelo-falso.mjs","user_mood":"curious","suggested_questions":["¿Cómo actualizo mis datos de facturación?","¿Dónde veo mi consumo?"],"debug":{"context_used":false},"matched_categories":["billing"],"redirect_to_age
+
+### 2. Pedido de agente humano
+Pedido: {"messages":[{"role":"user","content":"Quiero hablar con un agente"}],"model":"claude-haiku-4-5-20251001","knowledgeBaseId":""}
+HTTP/1.1 200 OK
+x-debug-data: {"msg":" API route called","data":{"messagesReceived":1,"latestMessageLength":27,"anthropicKeySlice":"fals****"},"timestamp":"2026-11-06T00:59:17.403Z"}
+Cuerpo: {"id":"4111474c-06d7-4d34-a3dc-2e3d52d84ac5","response":"Entiendo. Te comunico con un agente humano para que revise tu caso.","thinking":"Respuesta simulada por scripts/modelo-falso.mjs","user_mood":"frustrated","suggested_questions":[],"debug":{"context_used":false},"matched_categories":["billing"],"redirect_to_agent":{"should_redirect":true,"reason":"El usuario pidió hablar con una persona"}}
+
+### 3. El modelo no responde JSON
+Pedido: {"messages":[{"role":"user","content":"Probar json invalido"}],"model":"claude-haiku-4-5-20251001","knowledgeBaseId":""}
+HTTP/1.1 500 Internal Server Error
+Cuerpo: {"response":"Sorry, there was an issue processing your request. Please try again later.","thinking":"Error occurred during message generation.","user_mood":"neutral","debug":{"context_used":false}}
+
+### 4. Falla del proveedor del modelo
+Pedido: {"messages":[{"role":"user","content":"Simular falla"}],"model":"claude-haiku-4-5-20251001","knowledgeBaseId":""}
+HTTP/1.1 500 Internal Server Error
+Cuerpo: {"response":"Sorry, there was an issue processing your request. Please try again later.","thinking":"Error occurred during message generation.","user_mood":"neutral","debug":{"context_used":false}}
+
+### 5. Pedido sin mensajes
+Pedido: {"messages":[],"model":"claude-haiku-4-5-20251001","knowledgeBaseId":""}
+HTTP/1.1 500 Internal Server Error
+Cuerpo: 
+
+### 6. Modelo no ofrecido por la interfaz
+Pedido: {"messages":[{"role":"user","content":"Hola"}],"model":"claude-modelo-costoso","knowledgeBaseId":""}
+HTTP/1.1 200 OK
+x-debug-data: {"msg":" API route called","data":{"messagesReceived":1,"latestMessageLength":4,"anthropicKeySlice":"fals****"},"timestamp":"2026-11-06T00:59:17.518Z"}
+Cuerpo: {"id":"eaad3954-666e-4cee-8a1c-af519d011cac","response":"Podés ver y descargar tus facturas desde la sección Facturación de tu cuenta.","thinking":"Respuesta simulada por scripts/modelo-falso.mjs","user_mood":"curious","suggested_questions":["¿Cómo actualizo mis datos de facturación?","¿Dónde veo mi consumo?"],"debug":{"context_used":false},"matched_categories":["billing"],"redirect_to_age
+
+### 7. Tickets creados por la derivación
+[{"id":"443fb855-f678-4e94-a46d-0ae8e3c5aa04","consulta":"Quiero hablar con un agente","motivo":"El usuario pidió hablar con una persona","estado":"abierto","agenteId":null,"creadoEn":"2026-11-06T00:59:17.408Z","actualizadoEn":"2026-11-06T00:59:17.408Z"}]
+
+### 8. Asignar agente y avanzar estado
+{"id":"443fb855-f678-4e94-a46d-0ae8e3c5aa04","consulta":"Quiero hablar con un agente","motivo":"El usuario pidió hablar con una persona","estado":"abierto","agenteId":"agente-1","creadoEn":"2026-11-06T00:59:17.408Z","actualizadoEn":"2026-11-06T00:59:18.007Z"} [HTTP 200]
+{"id":"443fb855-f678-4e94-a46d-0ae8e3c5aa04","consulta":"Quiero hablar con un agente","motivo":"El usuario pidió hablar con una persona","estado":"en_progreso","agenteId":"agente-1","creadoEn":"2026-11-06T00:59:17.408Z","actualizadoEn":"2026-11-06T00:59:18.041Z"} [HTTP 200]
+{"error":"No se puede pasar de en_progreso a cerrado"} [HTTP 409]

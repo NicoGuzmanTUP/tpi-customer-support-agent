@@ -1,0 +1,42 @@
+Aplicación: http://localhost:3102
+Fecha: 2026-11-05T21:59:18-03:00
+
+### 1. Consulta normal
+Pedido: {"messages":[{"role":"user","content":"¿Dónde veo mis facturas?"}],"model":"claude-haiku-4-5-20251001","knowledgeBaseId":""}
+HTTP/1.1 200 OK
+x-debug-data: {"msg":" API route called","data":{"messagesReceived":1,"latestMessageLength":24},"timestamp":"2026-11-06T00:59:19.256Z"}
+Cuerpo: {"id":"0a45b6ec-280a-4e41-b381-7a90cb1651f3","response":"Podés ver y descargar tus facturas desde la sección Facturación de tu cuenta.","thinking":"Respuesta simulada por scripts/modelo-falso.mjs","user_mood":"curious","suggested_questions":["¿Cómo actualizo mis datos de facturación?","¿Dónde veo mi consumo?"],"debug":{"context_used":false},"matched_categories":["billing"],"redirect_to_age
+
+### 2. Pedido de agente humano
+Pedido: {"messages":[{"role":"user","content":"Quiero hablar con un agente"}],"model":"claude-haiku-4-5-20251001","knowledgeBaseId":""}
+HTTP/1.1 200 OK
+x-debug-data: {"msg":" API route called","data":{"messagesReceived":1,"latestMessageLength":27},"timestamp":"2026-11-06T00:59:19.297Z"}
+Cuerpo: {"id":"4656ea87-a1f8-4deb-a184-d99be17d2481","response":"Entiendo. Te comunico con un agente humano para que revise tu caso.","thinking":"Respuesta simulada por scripts/modelo-falso.mjs","user_mood":"frustrated","suggested_questions":[],"debug":{"context_used":false},"matched_categories":["billing"],"redirect_to_agent":{"should_redirect":true,"reason":"El usuario pidió hablar con una persona"}}
+
+### 3. El modelo no responde JSON
+Pedido: {"messages":[{"role":"user","content":"Probar json invalido"}],"model":"claude-haiku-4-5-20251001","knowledgeBaseId":""}
+HTTP/1.1 500 Internal Server Error
+Cuerpo: {"response":"Sorry, there was an issue processing your request. Please try again later.","thinking":"Error occurred during message generation.","user_mood":"neutral","debug":{"context_used":false}}
+
+### 4. Falla del proveedor del modelo
+Pedido: {"messages":[{"role":"user","content":"Simular falla"}],"model":"claude-haiku-4-5-20251001","knowledgeBaseId":""}
+HTTP/1.1 500 Internal Server Error
+Cuerpo: {"response":"Sorry, there was an issue processing your request. Please try again later.","thinking":"Error occurred during message generation.","user_mood":"neutral","debug":{"context_used":false}}
+
+### 5. Pedido sin mensajes
+Pedido: {"messages":[],"model":"claude-haiku-4-5-20251001","knowledgeBaseId":""}
+HTTP/1.1 400 Bad Request
+Cuerpo: {"error":"Invalid chat request"}
+
+### 6. Modelo no ofrecido por la interfaz
+Pedido: {"messages":[{"role":"user","content":"Hola"}],"model":"claude-modelo-costoso","knowledgeBaseId":""}
+HTTP/1.1 400 Bad Request
+Cuerpo: {"error":"Invalid chat request"}
+
+### 7. Tickets creados por la derivación
+[{"id":"bfb1917b-9950-4f8d-93b1-706acdda601d","consulta":"Quiero hablar con un agente","motivo":"El usuario pidió hablar con una persona","estado":"abierto","agenteId":null,"creadoEn":"2026-11-06T00:59:19.302Z","actualizadoEn":"2026-11-06T00:59:19.302Z"}]
+
+### 8. Asignar agente y avanzar estado
+{"id":"bfb1917b-9950-4f8d-93b1-706acdda601d","consulta":"Quiero hablar con un agente","motivo":"El usuario pidió hablar con una persona","estado":"abierto","agenteId":"agente-1","creadoEn":"2026-11-06T00:59:19.302Z","actualizadoEn":"2026-11-06T00:59:19.930Z"} [HTTP 200]
+{"id":"bfb1917b-9950-4f8d-93b1-706acdda601d","consulta":"Quiero hablar con un agente","motivo":"El usuario pidió hablar con una persona","estado":"en_progreso","agenteId":"agente-1","creadoEn":"2026-11-06T00:59:19.302Z","actualizadoEn":"2026-11-06T00:59:19.967Z"} [HTTP 200]
+{"error":"No se puede pasar de en_progreso a cerrado"} [HTTP 409]
