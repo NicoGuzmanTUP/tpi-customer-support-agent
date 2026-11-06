@@ -54,7 +54,7 @@ function pedido(cuerpo: unknown) {
 
 const CUERPO = {
   messages: [{ role: "user", content: "¿Cómo pago mi factura?" }],
-  model: "modelo-de-prueba",
+  model: "claude-haiku-4-5-20251001",
   knowledgeBaseId: "kb-1",
 };
 
@@ -103,7 +103,7 @@ describe("POST /api/chat: respuesta exitosa", () => {
     await POST(pedido(CUERPO));
 
     const parametros = crearMensaje.mock.calls[0][0];
-    expect(parametros.model).toBe("modelo-de-prueba");
+    expect(parametros.model).toBe("claude-haiku-4-5-20251001");
     expect(parametros.max_tokens).toBe(1000);
     expect(parametros.messages).toEqual([
       { role: "user", content: "¿Cómo pago mi factura?" },
@@ -159,10 +159,19 @@ describe("POST /api/chat: respuesta exitosa", () => {
     const depuracion = JSON.parse(respuesta.headers.get("X-Debug-Data")!);
 
     expect(depuracion.msg).toContain("API route called");
-    expect(depuracion.data).toMatchObject({
+    expect(depuracion.data).toEqual({
       messagesReceived: 1,
       latestMessageLength: CUERPO.messages[0].content.length,
     });
+  });
+
+  // Cambio intencional (CS-10): antes el encabezado incluía el prefijo de la API key.
+  it("no expone datos de la API key en X-Debug-Data", async () => {
+    process.env.ANTHROPIC_API_KEY = "sk-ant-secreto";
+    const respuesta = await POST(pedido(CUERPO));
+    delete process.env.ANTHROPIC_API_KEY;
+
+    expect(respuesta.headers.get("X-Debug-Data")).not.toContain("sk-a");
   });
 });
 
@@ -240,6 +249,14 @@ describe("POST /api/chat: errores", () => {
     expect(sinMensajes.status).toBe(400);
     expect(await sinMensajes.json()).toEqual({ error: "Invalid chat request" });
     expect(malformado.status).toBe(400);
+    expect(crearMensaje).not.toHaveBeenCalled();
+  });
+
+  // Cambio intencional (CS-10): antes se aceptaba cualquier modelo.
+  it("devuelve 400 si el modelo no está permitido", async () => {
+    const respuesta = await POST(pedido({ ...CUERPO, model: "otro-modelo" }));
+
+    expect(respuesta.status).toBe(400);
     expect(crearMensaje).not.toHaveBeenCalled();
   });
 });

@@ -33,7 +33,7 @@ function pedido() {
     method: "POST",
     body: JSON.stringify({
       messages: [{ role: "user", content: "Hola" }],
-      model: "modelo",
+      model: "claude-haiku-4-5-20251001",
       knowledgeBaseId: "kb",
     }),
   });
@@ -49,7 +49,7 @@ describe("createChatHandler con dependencias inyectadas", () => {
     expect(deps.retriever.retrieve).toHaveBeenCalledWith("Hola", "kb");
     expect(deps.modelClient.complete).toHaveBeenCalledWith(
       expect.objectContaining({
-        model: "modelo",
+        model: "claude-haiku-4-5-20251001",
         messages: [{ role: "user", content: "Hola" }],
       }),
     );

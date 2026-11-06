@@ -2,6 +2,7 @@ import { z } from "zod";
 import crypto from "crypto";
 import type { RAGSource } from "@/app/lib/rag";
 import { buildSystemPrompt } from "@/app/lib/chat/prompt";
+import { ALLOWED_MODELS } from "@/app/lib/chat/models";
 import type {
   ChatDependencies,
   CompletionRequest,
@@ -78,7 +79,7 @@ const chatRequestSchema = z.object({
       }),
     )
     .min(1),
-  model: z.string().min(1),
+  model: z.enum(ALLOWED_MODELS),
   knowledgeBaseId: z.string(),
 });
 type ChatResponse = z.infer<typeof responseSchema> & { id: string };
@@ -148,7 +149,6 @@ function buildDebugData(messageCount: number, latestMessage: string): string {
     debugMessage("🚀 API route called", {
       messagesReceived: messageCount,
       latestMessageLength: latestMessage.length,
-      anthropicKeySlice: process.env.ANTHROPIC_API_KEY?.slice(0, 4) + "****",
     }),
   ).slice(0, MAX_DEBUG_LENGTH);
 }
