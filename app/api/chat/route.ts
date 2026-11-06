@@ -1,6 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
-import { retrieveContext, RAGSource } from "@/app/lib/utils";
+import { retrieveContext, RAGSource } from "@/app/lib/rag";
 import { crearTicket } from "@/app/lib/incidencias";
 import crypto from "crypto";
 import customerSupportCategories from "@/app/lib/customer_support_categories.json";
