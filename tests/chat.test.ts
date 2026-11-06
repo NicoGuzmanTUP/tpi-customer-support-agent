@@ -120,6 +120,15 @@ describe("POST /api/chat: respuesta exitosa", () => {
     expect(sistema).toContain('"matched_categories"');
   });
 
+  // Fija el texto completo del prompt para detectar cualquier cambio durante el refactor.
+  it("mantiene el system prompt idéntico, con y sin contexto", async () => {
+    await POST(pedido(CUERPO));
+    await POST(pedido({ ...CUERPO, knowledgeBaseId: "" }));
+
+    expect(crearMensaje.mock.calls[0][0].system).toMatchSnapshot();
+    expect(crearMensaje.mock.calls[1][0].system).toMatchSnapshot();
+  });
+
   it("consulta Bedrock con la pregunta más reciente y 3 resultados", async () => {
     await POST(pedido(CUERPO));
 
