@@ -6,6 +6,9 @@ import { buildSystemPrompt } from "@/app/lib/chat/prompt";
 import crypto from "crypto";
 import customerSupportCategories from "@/app/lib/customer_support_categories.json";
 
+const MAX_RESPONSE_TOKENS = 1000;
+const MAX_DEBUG_LENGTH = 1000;
+
 const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
@@ -13,7 +16,7 @@ const client = new Anthropic({
 // Debug message helper function
 // Input: message string and optional data object
 // Output: JSON string with message, sanitized data, and timestamp
-const debugMessage = (msg: string, data: any = {}) => {
+const debugMessage = (msg: string, data: Record<string, unknown> = {}) => {
   console.log(msg, data);
   const timestamp = new Date().toISOString().replace(/[^\x20-\x7E]/g, "");
   const safeData = JSON.parse(JSON.stringify(data));
@@ -63,6 +66,11 @@ const logTimestamp = (label: string, start: number) => {
 };
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
+type ChatRequest = {
+  messages: ChatMessage[];
+  model: string;
+  knowledgeBaseId: string;
+};
 type ChatResponse = z.infer<typeof responseSchema> & { id: string };
 
 // Main POST request handler
@@ -71,7 +79,7 @@ export async function POST(req: Request) {
   const measureTime = (label: string) => logTimestamp(label, apiStart);
 
   // Extract data from the request body
-  const { messages, model, knowledgeBaseId } = await req.json();
+  const { messages, model, knowledgeBaseId }: ChatRequest = await req.json();
   const latestMessage = messages[messages.length - 1].content;
 
   console.log("📝 Latest Query:", latestMessage);
@@ -115,7 +123,6 @@ export async function POST(req: Request) {
 
 // Prepare debug data sent to the client in the X-Debug-Data header
 function buildDebugData(messageCount: number, latestMessage: string): string {
-  const MAX_DEBUG_LENGTH = 1000;
   return sanitizeHeaderValue(
     debugMessage("🚀 API route called", {
       messagesReceived: messageCount,
@@ -142,7 +149,7 @@ async function generateChatResponse(
   systemPrompt: string,
 ): Promise<ChatResponse> {
   const anthropicMessages: Anthropic.MessageParam[] = messages.map(
-    (msg: any) => ({
+    (msg) => ({
       role: msg.role,
       content: msg.content,
     }),
@@ -156,7 +163,7 @@ async function generateChatResponse(
 
   const response = await client.messages.create({
     model: model,
-    max_tokens: 1000,
+    max_tokens: MAX_RESPONSE_TOKENS,
     messages: anthropicMessages,
     system: systemPrompt,
   });
