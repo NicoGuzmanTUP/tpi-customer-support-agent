@@ -3,6 +3,7 @@ import {
   KnowledgeBaseRetrievalResult,
   RetrieveCommand,
 } from "@aws-sdk/client-bedrock-agent-runtime";
+import type { ContextRetriever } from "@/app/lib/chat/ports";
 
 const BEDROCK_REGION = process.env.BEDROCK_REGION ?? "us-east-1";
 const DEFAULT_RESULT_COUNT = 3;
@@ -95,3 +96,7 @@ export async function retrieveContext(
     return emptyResult();
   }
 }
+
+export const bedrockRetriever: ContextRetriever = {
+  retrieve: (query, knowledgeBaseId) => retrieveContext(query, knowledgeBaseId),
+};
