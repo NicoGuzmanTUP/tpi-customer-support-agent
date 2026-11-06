@@ -1,0 +1,38 @@
+
+ RUN  v3.2.4 .
+      Coverage enabled with v8
+
+stdout | tests/chat.test.ts
+🔑 Have AWS AccessKey? false
+🔑 Have AWS Secret? false
+
+ ✓ tests/chat-handler.test.ts (2 tests) 15ms
+ ✓ tests/incidencias.test.ts (13 tests) 43ms
+ ✓ tests/chat.test.ts (19 tests) 42ms
+
+ Test Files  3 passed (3)
+      Tests  34 passed (34)
+   Start at  21:48:06
+   Duration  708ms (transform 179ms, setup 48ms, collect 284ms, tests 100ms, environment 1ms, prepare 228ms)
+
+ % Coverage report from v8
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-------------------|---------|----------|---------|---------|-------------------
+All files          |   93.91 |    94.01 |    97.5 |   93.91 |                   
+ api/chat          |     100 |      100 |     100 |     100 |                   
+  route.ts         |     100 |      100 |     100 |     100 |                   
+ api/tickets       |     100 |      100 |     100 |     100 |                   
+  route.ts         |     100 |      100 |     100 |     100 |                   
+ api/tickets/[id]  |   94.28 |     87.5 |     100 |   94.28 |                   
+  route.ts         |   94.28 |     87.5 |     100 |   94.28 | 42-43             
+ lib               |     100 |    91.93 |     100 |     100 |                   
+  incidencias.ts   |     100 |    97.82 |     100 |     100 | 61                
+  rag.ts           |     100 |       75 |     100 |     100 | 51-52,59,85       
+ lib/chat          |   88.53 |    97.77 |   94.73 |   88.53 |                   
+  ...opic-model.ts |     100 |      100 |     100 |     100 |                   
+  handler.ts       |     100 |      100 |     100 |     100 |                   
+  models.ts        |     100 |      100 |     100 |     100 |                   
+  ports.ts         |       0 |        0 |       0 |       0 | 1-32              
+  prompt.ts        |     100 |      100 |     100 |     100 |                   
+-------------------|---------|----------|---------|---------|-------------------

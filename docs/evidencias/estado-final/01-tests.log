@@ -1,0 +1,16 @@
+
+ RUN  v3.2.4 .
+
+stdout | tests/chat.test.ts
+🔑 Have AWS AccessKey? false
+🔑 Have AWS Secret? false
+
+ ✓ tests/chat-handler.test.ts (2 tests) 18ms
+ ✓ tests/incidencias.test.ts (13 tests) 67ms
+ ✓ tests/chat.test.ts (19 tests) 47ms
+
+ Test Files  3 passed (3)
+      Tests  34 passed (34)
+   Start at  21:48:05
+   Duration  534ms (transform 160ms, setup 94ms, collect 232ms, tests 132ms, environment 1ms, prepare 334ms)
+

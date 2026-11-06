@@ -1,0 +1,144 @@
+Código: estado-inicial (6a7fef4)
+Tests:  etapa-refactoring (7d3dc99)
+
+
+ RUN  v3.2.4 .
+
+stdout | tests/chat.test.ts
+🔑 Have AWS AccessKey? false
+🔑 Have AWS Secret? false
+
+ ✓ tests/incidencias.test.ts > módulo de incidencias > devuelve una lista vacía si todavía no hay archivo de tickets 4ms
+ ✓ tests/incidencias.test.ts > módulo de incidencias > crea un ticket abierto, sin agente, y lo persiste 3ms
+ ✓ tests/incidencias.test.ts > módulo de incidencias > conserva todos los tickets creados en paralelo 15ms
+ ✓ tests/incidencias.test.ts > módulo de incidencias > permite el ciclo abierto, en progreso, resuelto y cerrado 10ms
+ ✓ tests/incidencias.test.ts > módulo de incidencias > rechaza transiciones no permitidas con un conflicto 2ms
+ ✓ tests/incidencias.test.ts > módulo de incidencias > no guarda cambios cuando la operación falla 1ms
+ ✓ tests/incidencias.test.ts > módulo de incidencias > asigna un agente existente 2ms
+ ✓ tests/incidencias.test.ts > módulo de incidencias > rechaza agentes inexistentes y tickets inexistentes 2ms
+ ✓ tests/incidencias.test.ts > módulo de incidencias > no asigna agentes a tickets cerrados 2ms
+ ✓ tests/incidencias.test.ts > módulo de incidencias > filtra por estado, agente y texto sin distinguir mayúsculas 3ms
+ ✓ tests/incidencias.test.ts > rutas de tickets > GET filtra tickets y valida el filtro 6ms
+ ✓ tests/incidencias.test.ts > rutas de tickets > PATCH cambia estado o asigna agente 3ms
+ ✓ tests/incidencias.test.ts > rutas de tickets > PATCH traduce errores a 400, 404 y 409 2ms
+ ✓ tests/chat.test.ts > POST /api/chat: respuesta exitosa > devuelve 200 con la respuesta validada y un id 11ms
+ ✓ tests/chat.test.ts > POST /api/chat: respuesta exitosa > envía el historial, el modelo y el prefill '{' al SDK 2ms
+ ✓ tests/chat.test.ts > POST /api/chat: respuesta exitosa > incluye el contexto recuperado y las categorías en el system prompt 2ms
+ ✓ tests/chat.test.ts > POST /api/chat: respuesta exitosa > mantiene el system prompt idéntico, con y sin contexto 3ms
+ ✓ tests/chat.test.ts > POST /api/chat: respuesta exitosa > consulta Bedrock con la pregunta más reciente y 3 resultados 2ms
+ ✓ tests/chat.test.ts > POST /api/chat: respuesta exitosa > publica solo la primera fuente RAG en x-rag-sources 1ms
+ × tests/chat.test.ts > POST /api/chat: respuesta exitosa > publica datos de depuración en X-Debug-Data 7ms
+   → expected { messagesReceived: 1, …(2) } to deeply equal { messagesReceived: 1, …(1) }
+ × tests/chat.test.ts > POST /api/chat: respuesta exitosa > no expone datos de la API key en X-Debug-Data 3ms
+   → expected '{"msg":" API route called","data":{"m…' not to contain 'sk-a'
+ ✓ tests/chat.test.ts > POST /api/chat: sin contexto RAG > indica en el prompt que no hay información y omite x-rag-sources 2ms
+ ✓ tests/chat.test.ts > POST /api/chat: sin contexto RAG > continúa sin contexto cuando Bedrock falla 1ms
+ ✓ tests/chat.test.ts > POST /api/chat: errores > devuelve 500 si el modelo no responde JSON 1ms
+ ✓ tests/chat.test.ts > POST /api/chat: errores > devuelve 500 si la respuesta no cumple el esquema 2ms
+ ✓ tests/chat.test.ts > POST /api/chat: errores > devuelve 500 si el SDK lanza un error 2ms
+ × tests/chat.test.ts > POST /api/chat: errores > devuelve 400 si el pedido no trae mensajes o es inválido 2ms
+   → Cannot read properties of undefined (reading 'content')
+ × tests/chat.test.ts > POST /api/chat: errores > devuelve 400 si el modelo no está permitido 1ms
+   → expected 200 to be 400 // Object.is equality
+ ✓ tests/chat.test.ts > POST /api/chat: derivación a agente > crea un ticket abierto con la consulta y el motivo 2ms
+ ✓ tests/chat.test.ts > POST /api/chat: derivación a agente > usa un motivo por defecto si el modelo no informa uno 1ms
+ ✓ tests/chat.test.ts > POST /api/chat: derivación a agente > no crea tickets si no hay derivación 1ms
+ ✓ tests/chat.test.ts > POST /api/chat: derivación a agente > responde 200 aunque falle el guardado del ticket 1ms
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/chat-handler.test.ts [ tests/chat-handler.test.ts ]
+Error: Cannot find module '@/app/lib/chat/handler' imported from './tests/chat-handler.test.ts'.
+
+- If you rely on tsconfig.json's "paths" to resolve modules, please install "vite-tsconfig-paths" plugin to handle module resolution.
+- Make sure you don't have relative aliases in your Vitest config. Use absolute paths instead. Read more: https://vitest.dev/guide/common-errors
+ ❯ tests/chat-handler.test.ts:2:1
+      1| import { describe, expect, it, vi } from "vitest";
+      2| import { createChatHandler } from "@/app/lib/chat/handler";
+       | ^
+      3| import type { ChatDependencies } from "@/app/lib/chat/ports";
+      4| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'ERR_MODULE_NOT_FOUND' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/chat.test.ts > POST /api/chat: respuesta exitosa > publica datos de depuración en X-Debug-Data
+AssertionError: expected { messagesReceived: 1, …(2) } to deeply equal { messagesReceived: 1, …(1) }
+
+- Expected
++ Received
+
+  {
++   "anthropicKeySlice": "undefined****",
+    "latestMessageLength": 22,
+    "messagesReceived": 1,
+  }
+
+ ❯ tests/chat.test.ts:162:29
+    160| 
+    161|     expect(depuracion.msg).toContain("API route called");
+    162|     expect(depuracion.data).toEqual({
+       |                             ^
+    163|       messagesReceived: 1,
+    164|       latestMessageLength: CUERPO.messages[0].content.length,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  tests/chat.test.ts > POST /api/chat: respuesta exitosa > no expone datos de la API key en X-Debug-Data
+AssertionError: expected '{"msg":" API route called","data":{"m…' not to contain 'sk-a'
+
+Expected: "sk-a"
+Received: "{"msg":" API route called","data":{"messagesReceived":1,"latestMessageLength":22,"anthropicKeySlice":"sk-a****"},"timestamp":"2026-11-06T00:47:50.866Z"}"
+
+ ❯ tests/chat.test.ts:174:55
+    172|     delete process.env.ANTHROPIC_API_KEY;
+    173| 
+    174|     expect(respuesta.headers.get("X-Debug-Data")).not.toContain("sk-a"…
+       |                                                       ^
+    175|   });
+    176| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  tests/chat.test.ts > POST /api/chat: errores > devuelve 400 si el pedido no trae mensajes o es inválido
+TypeError: Cannot read properties of undefined (reading 'content')
+ ❯ Module.POST app/api/chat/route.ts:71:55
+     69|   // Extract data from the request body
+     70|   const { messages, model, knowledgeBaseId } = await req.json();
+     71|   const latestMessage = messages[messages.length - 1].content;
+       |                                                       ^
+     72| 
+     73|   console.log("📝 Latest Query:", latestMessage);
+ ❯ tests/chat.test.ts:244:25
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  tests/chat.test.ts > POST /api/chat: errores > devuelve 400 si el modelo no está permitido
+AssertionError: expected 200 to be 400 // Object.is equality
+
+- Expected
++ Received
+
+- 400
++ 200
+
+ ❯ tests/chat.test.ts:259:30
+    257|     const respuesta = await POST(pedido({ ...CUERPO, model: "otro-mode…
+    258| 
+    259|     expect(respuesta.status).toBe(400);
+       |                              ^
+    260|     expect(crearMensaje).not.toHaveBeenCalled();
+    261|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  2 failed | 1 passed (3)
+      Tests  4 failed | 28 passed (32)
+   Start at  21:47:50
+   Duration  486ms (transform 166ms, setup 44ms, collect 195ms, tests 104ms, environment 0ms, prepare 355ms)
+

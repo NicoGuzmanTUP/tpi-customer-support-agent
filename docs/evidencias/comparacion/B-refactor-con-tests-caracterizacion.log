@@ -1,0 +1,46 @@
+Código: d63f5c1 (d63f5c1)
+Tests:  27039b4 (27039b4)
+
+
+ RUN  v3.2.4 .
+
+stdout | tests/chat.test.ts
+🔑 Have AWS AccessKey? false
+🔑 Have AWS Secret? false
+
+ ✓ tests/incidencias.test.ts > módulo de incidencias > devuelve una lista vacía si todavía no hay archivo de tickets 8ms
+ ✓ tests/incidencias.test.ts > módulo de incidencias > crea un ticket abierto, sin agente, y lo persiste 3ms
+ ✓ tests/incidencias.test.ts > módulo de incidencias > conserva todos los tickets creados en paralelo 7ms
+ ✓ tests/incidencias.test.ts > módulo de incidencias > permite el ciclo abierto, en progreso, resuelto y cerrado 3ms
+ ✓ tests/incidencias.test.ts > módulo de incidencias > rechaza transiciones no permitidas con un conflicto 2ms
+ ✓ tests/incidencias.test.ts > módulo de incidencias > no guarda cambios cuando la operación falla 1ms
+ ✓ tests/incidencias.test.ts > módulo de incidencias > asigna un agente existente 2ms
+ ✓ tests/incidencias.test.ts > módulo de incidencias > rechaza agentes inexistentes y tickets inexistentes 1ms
+ ✓ tests/incidencias.test.ts > módulo de incidencias > no asigna agentes a tickets cerrados 2ms
+ ✓ tests/incidencias.test.ts > módulo de incidencias > filtra por estado, agente y texto sin distinguir mayúsculas 3ms
+ ✓ tests/incidencias.test.ts > rutas de tickets > GET filtra tickets y valida el filtro 5ms
+ ✓ tests/incidencias.test.ts > rutas de tickets > PATCH cambia estado o asigna agente 3ms
+ ✓ tests/incidencias.test.ts > rutas de tickets > PATCH traduce errores a 400, 404 y 409 2ms
+ ✓ tests/chat.test.ts > POST /api/chat: respuesta exitosa > devuelve 200 con la respuesta validada y un id 9ms
+ ✓ tests/chat.test.ts > POST /api/chat: respuesta exitosa > envía el historial, el modelo y el prefill '{' al SDK 2ms
+ ✓ tests/chat.test.ts > POST /api/chat: respuesta exitosa > incluye el contexto recuperado y las categorías en el system prompt 2ms
+ ✓ tests/chat.test.ts > POST /api/chat: respuesta exitosa > mantiene el system prompt idéntico, con y sin contexto 3ms
+ ✓ tests/chat.test.ts > POST /api/chat: respuesta exitosa > consulta Bedrock con la pregunta más reciente y 3 resultados 1ms
+ ✓ tests/chat.test.ts > POST /api/chat: respuesta exitosa > publica solo la primera fuente RAG en x-rag-sources 1ms
+ ✓ tests/chat.test.ts > POST /api/chat: respuesta exitosa > publica datos de depuración en X-Debug-Data 1ms
+ ✓ tests/chat.test.ts > POST /api/chat: sin contexto RAG > indica en el prompt que no hay información y omite x-rag-sources 2ms
+ ✓ tests/chat.test.ts > POST /api/chat: sin contexto RAG > continúa sin contexto cuando Bedrock falla 2ms
+ ✓ tests/chat.test.ts > POST /api/chat: errores > devuelve 500 si el modelo no responde JSON 1ms
+ ✓ tests/chat.test.ts > POST /api/chat: errores > devuelve 500 si la respuesta no cumple el esquema 1ms
+ ✓ tests/chat.test.ts > POST /api/chat: errores > devuelve 500 si el SDK lanza un error 1ms
+ ✓ tests/chat.test.ts > POST /api/chat: errores > rechaza la promesa si el pedido no trae mensajes 1ms
+ ✓ tests/chat.test.ts > POST /api/chat: derivación a agente > crea un ticket abierto con la consulta y el motivo 2ms
+ ✓ tests/chat.test.ts > POST /api/chat: derivación a agente > usa un motivo por defecto si el modelo no informa uno 2ms
+ ✓ tests/chat.test.ts > POST /api/chat: derivación a agente > no crea tickets si no hay derivación 1ms
+ ✓ tests/chat.test.ts > POST /api/chat: derivación a agente > responde 200 aunque falle el guardado del ticket 1ms
+
+ Test Files  2 passed (2)
+      Tests  30 passed (30)
+   Start at  21:47:48
+   Duration  431ms (transform 111ms, setup 30ms, collect 155ms, tests 78ms, environment 0ms, prepare 181ms)
+
