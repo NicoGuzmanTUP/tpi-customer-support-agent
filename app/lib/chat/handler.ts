@@ -4,7 +4,6 @@ import type { RAGSource } from "@/app/lib/rag";
 import { buildSystemPrompt } from "@/app/lib/chat/prompt";
 import type {
   ChatDependencies,
-  ChatMessage,
   CompletionRequest,
   ContextRetriever,
   ModelClient,
@@ -70,11 +69,18 @@ const logTimestamp = (label: string, start: number) => {
   console.log(`⏱️ [${timestamp}] ${label}: ${time}s`);
 };
 
-type ChatRequest = {
-  messages: ChatMessage[];
-  model: string;
-  knowledgeBaseId: string;
-};
+const chatRequestSchema = z.object({
+  messages: z
+    .array(
+      z.object({
+        role: z.enum(["user", "assistant"]),
+        content: z.string(),
+      }),
+    )
+    .min(1),
+  model: z.string().min(1),
+  knowledgeBaseId: z.string(),
+});
 type ChatResponse = z.infer<typeof responseSchema> & { id: string };
 
 // The handler depends only on abstractions; route.ts wires the real adapters.
@@ -83,8 +89,13 @@ export function createChatHandler(deps: ChatDependencies) {
     const apiStart = performance.now();
     const measureTime = (label: string) => logTimestamp(label, apiStart);
 
-    // Extract data from the request body
-    const { messages, model, knowledgeBaseId }: ChatRequest = await req.json();
+    const request = chatRequestSchema.safeParse(
+      await req.json().catch(() => null),
+    );
+    if (!request.success) {
+      return buildBadRequestResponse();
+    }
+    const { messages, model, knowledgeBaseId } = request.data;
     const latestMessage = messages[messages.length - 1].content;
 
     console.log("📝 Latest Query:", latestMessage);
@@ -220,6 +231,10 @@ function buildSuccessResponse(
 
   apiResponse.headers.set("X-Debug-Data", sanitizeHeaderValue(debugData));
   return apiResponse;
+}
+
+function buildBadRequestResponse(): Response {
+  return Response.json({ error: "Invalid chat request" }, { status: 400 });
 }
 
 function buildErrorResponse(): Response {

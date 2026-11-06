@@ -230,9 +230,17 @@ describe("POST /api/chat: errores", () => {
     expect(await respuesta.json()).toEqual(ERROR_500);
   });
 
-  // Comportamiento actual, no deseado: el cuerpo se lee fuera del try.
-  it("rechaza la promesa si el pedido no trae mensajes", async () => {
-    await expect(POST(pedido({ messages: [] }))).rejects.toThrow(TypeError);
+  // Cambio intencional (CS-08): antes la promesa se rechazaba con TypeError.
+  it("devuelve 400 si el pedido no trae mensajes o es inválido", async () => {
+    const sinMensajes = await POST(pedido({ ...CUERPO, messages: [] }));
+    const malformado = await POST(
+      new Request("http://localhost/api/chat", { method: "POST", body: "{" }),
+    );
+
+    expect(sinMensajes.status).toBe(400);
+    expect(await sinMensajes.json()).toEqual({ error: "Invalid chat request" });
+    expect(malformado.status).toBe(400);
+    expect(crearMensaje).not.toHaveBeenCalled();
   });
 });
 
