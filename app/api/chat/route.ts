@@ -61,6 +61,9 @@ const logTimestamp = (label: string, start: number) => {
   console.log(`⏱️ [${timestamp}] ${label}: ${time}s`);
 };
 
+type ChatMessage = { role: "user" | "assistant"; content: string };
+type ChatResponse = z.infer<typeof responseSchema> & { id: string };
+
 // Main POST request handler
 export async function POST(req: Request) {
   const apiStart = performance.now();
@@ -73,50 +76,65 @@ export async function POST(req: Request) {
   console.log("📝 Latest Query:", latestMessage);
   measureTime("User Input Received");
 
-  // Prepare debug data
+  const debugData = buildDebugData(messages.length, latestMessage);
+
+  measureTime("RAG Start");
+  const rag = await retrieveRagContext(latestMessage, knowledgeBaseId);
+  measureTime("RAG Complete");
+
+  const systemPrompt = buildSystemPrompt(rag.context, rag.isRagWorking);
+
+  try {
+    measureTime("Claude Generation Start");
+    const chatResponse = await generateChatResponse(
+      messages,
+      model,
+      systemPrompt,
+    );
+    measureTime("Claude Generation Complete");
+
+    await registerAgentRedirect(chatResponse, latestMessage);
+
+    const apiResponse = buildSuccessResponse(
+      chatResponse,
+      rag.ragSources,
+      debugData,
+    );
+    measureTime("API Complete");
+    return apiResponse;
+  } catch (error) {
+    console.error("💥 Error in message generation:", error);
+    return buildErrorResponse();
+  }
+}
+
+// Prepare debug data sent to the client in the X-Debug-Data header
+function buildDebugData(messageCount: number, latestMessage: string): string {
   const MAX_DEBUG_LENGTH = 1000;
-  const debugData = sanitizeHeaderValue(
+  return sanitizeHeaderValue(
     debugMessage("🚀 API route called", {
-      messagesReceived: messages.length,
+      messagesReceived: messageCount,
       latestMessageLength: latestMessage.length,
       anthropicKeySlice: process.env.ANTHROPIC_API_KEY?.slice(0, 4) + "****",
     }),
   ).slice(0, MAX_DEBUG_LENGTH);
+}
 
-  // Initialize variables for RAG retrieval
-  let retrievedContext = "";
-  let isRagWorking = false;
-  let ragSources: RAGSource[] = [];
-
-  // Attempt to retrieve context from RAG
-  try {
-    console.log("🔍 Initiating RAG retrieval for query:", latestMessage);
-    measureTime("RAG Start");
-    const result = await retrieveContext(latestMessage, knowledgeBaseId);
-    retrievedContext = result.context;
-    isRagWorking = result.isRagWorking;
-    ragSources = result.ragSources || [];
-
-    if (!result.isRagWorking) {
-      console.warn("🚨 RAG Retrieval failed but did not throw!");
-    }
-
-    measureTime("RAG Complete");
-    console.log("🔍 RAG Retrieved:", isRagWorking ? "YES" : "NO");
-    console.log(
-      "✅ RAG retrieval completed successfully. Context:",
-      retrievedContext.slice(0, 100) + "...",
-    );
-  } catch (error) {
-    console.error("💀 RAG Error:", error);
-    console.error("❌ RAG retrieval failed for query:", latestMessage);
-    retrievedContext = "";
-    isRagWorking = false;
-    ragSources = [];
+// retrieveContext never throws: on failure it returns isRagWorking = false
+async function retrieveRagContext(query: string, knowledgeBaseId: string) {
+  console.log("🔍 Initiating RAG retrieval for query:", query);
+  const result = await retrieveContext(query, knowledgeBaseId);
+  if (!result.isRagWorking) {
+    console.warn("🚨 RAG Retrieval failed but did not throw!");
   }
+  console.log("🔍 RAG Retrieved:", result.isRagWorking ? "YES" : "NO");
+  return result;
+}
 
-  measureTime("RAG Total Duration");
-
+function buildSystemPrompt(
+  retrievedContext: string,
+  isRagWorking: boolean,
+): string {
   // Prepare categories context for the system prompt
   const USE_CATEGORIES = true;
   const categoryListString = customerSupportCategories.categories
@@ -132,8 +150,9 @@ export async function POST(req: Request) {
   `
     : "";
 
+
   // Change the system prompt company for your use case
-  const systemPrompt = `You are acting as an Anthropic customer support assistant chatbot inside a chat window on a website. You are chatting with a human user who is asking for help about Anthropic's products and services. When responding to the user, aim to provide concise and helpful responses while maintaining a polite and professional tone.
+  return `You are acting as an Anthropic customer support assistant chatbot inside a chat window on a website. You are chatting with a human user who is asking for help about Anthropic's products and services. When responding to the user, aim to provide concise and helpful responses while maintaining a polite and professional tone.
 
   To help you answer the user's question, we have retrieved the following information for you. It may or may not be relevant (we are using a RAG pipeline to retrieve this information):
   ${isRagWorking ? `${retrievedContext}` : "No information found for this query."}
@@ -194,119 +213,109 @@ export async function POST(req: Request) {
       "reason": "Complex technical issue requiring human expertise"
     }
   }
-  `
+  `;
+}
 
-  function sanitizeAndParseJSON(jsonString : string) {
-    // Replace newlines within string values
-    const sanitized = jsonString.replace(/(?<=:\s*")(.|\n)*?(?=")/g, match => 
-      match.replace(/\n/g, "\\n")
-    );
-  
-    try {
-      return JSON.parse(sanitized);
-    } catch (parseError) {
-      console.error("Error parsing JSON response:", parseError);
-      throw new Error("Invalid JSON response from AI");
-    }
-  }
+async function generateChatResponse(
+  messages: ChatMessage[],
+  model: string,
+  systemPrompt: string,
+): Promise<ChatResponse> {
+  const anthropicMessages: Anthropic.MessageParam[] = messages.map(
+    (msg: any) => ({
+      role: msg.role,
+      content: msg.content,
+    }),
+  );
+
+  // Prefill: the model continues a JSON object that starts with "{"
+  anthropicMessages.push({
+    role: "assistant",
+    content: "{",
+  });
+
+  const response = await client.messages.create({
+    model: model,
+    max_tokens: 1000,
+    messages: anthropicMessages,
+    system: systemPrompt,
+  });
+
+  const textContent = "{" + response.content
+    .filter((block): block is Anthropic.TextBlock => block.type === "text")
+    .map((block) => block.text)
+    .join(" ");
+
+  const validatedResponse = responseSchema.parse(parseModelJson(textContent));
+  return { id: crypto.randomUUID(), ...validatedResponse };
+}
+
+// Replace newlines within string values before parsing
+function parseModelJson(jsonString: string) {
+  const sanitized = jsonString.replace(/(?<=:\s*")(.|\n)*?(?=")/g, (match) =>
+    match.replace(/\n/g, "\\n"),
+  );
 
   try {
-    console.log(`🚀 Query Processing`);
-    measureTime("Claude Generation Start");
-
-    const anthropicMessages: Anthropic.MessageParam[] = messages.map(
-      (msg: any) => ({
-        role: msg.role,
-        content: msg.content,
-      }),
-    );
-
-    anthropicMessages.push({
-      role: "assistant",
-      content: "{",
-    });
-
-    const response = await client.messages.create({
-      model: model,
-      max_tokens: 1000,
-      messages: anthropicMessages,
-      system: systemPrompt,
-    });
-
-    measureTime("Claude Generation Complete");
-    console.log("✅ Message generation completed");
-
-    // Extract text content from the response
-    const textContent = "{" + response.content
-      .filter((block): block is Anthropic.TextBlock => block.type === "text")
-      .map((block) => block.text)
-      .join(" ");
-
-    // Parse the JSON response
-    let parsedResponse;
-    try {
-      parsedResponse = sanitizeAndParseJSON(textContent);
-    } catch (parseError) {
-      console.error("Error parsing JSON response:", parseError);
-      throw new Error("Invalid JSON response from AI");
-    }
-
-    const validatedResponse = responseSchema.parse(parsedResponse);
-
-    const responseWithId = {
-      id: crypto.randomUUID(),
-      ...validatedResponse,
-    };
-
-    // Check if redirection to a human agent is needed
-    if (responseWithId.redirect_to_agent?.should_redirect) {
-      console.log("🚨 AGENT REDIRECT TRIGGERED!");
-      console.log("Reason:", responseWithId.redirect_to_agent.reason);
-      try {
-        await crearTicket(
-          latestMessage,
-          responseWithId.redirect_to_agent.reason ?? "Sin motivo informado",
-        );
-      } catch (ticketError) {
-        console.error("Error creating ticket:", ticketError);
-      }
-    }
-
-    // Prepare the response object
-    const apiResponse = new Response(JSON.stringify(responseWithId), {
-      status: 200,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    // Add RAG sources to the response headers if available
-    if (ragSources.length > 0) {
-      apiResponse.headers.set(
-        "x-rag-sources",
-        sanitizeHeaderValue(JSON.stringify(ragSources)),
-      );
-    }
-
-    // Add debug data to the response headers
-    apiResponse.headers.set("X-Debug-Data", sanitizeHeaderValue(debugData));
-
-    measureTime("API Complete");
-
-    return apiResponse;
-  } catch (error) {
-    // Handle errors in AI response generation
-    console.error("💥 Error in message generation:", error);
-    const errorResponse = {
-      response:
-        "Sorry, there was an issue processing your request. Please try again later.",
-      thinking: "Error occurred during message generation.",
-      user_mood: "neutral",
-      debug: { context_used: false },
-    };
-    return new Response(JSON.stringify(errorResponse), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    return JSON.parse(sanitized);
+  } catch (parseError) {
+    console.error("Error parsing JSON response:", parseError);
+    throw new Error("Invalid JSON response from AI");
   }
+}
+
+async function registerAgentRedirect(
+  chatResponse: ChatResponse,
+  latestMessage: string,
+): Promise<void> {
+  if (!chatResponse.redirect_to_agent?.should_redirect) {
+    return;
+  }
+  console.log("🚨 AGENT REDIRECT TRIGGERED!");
+  console.log("Reason:", chatResponse.redirect_to_agent.reason);
+  try {
+    await crearTicket(
+      latestMessage,
+      chatResponse.redirect_to_agent.reason ?? "Sin motivo informado",
+    );
+  } catch (ticketError) {
+    console.error("Error creating ticket:", ticketError);
+  }
+}
+
+function buildSuccessResponse(
+  chatResponse: ChatResponse,
+  ragSources: RAGSource[],
+  debugData: string,
+): Response {
+  const apiResponse = new Response(JSON.stringify(chatResponse), {
+    status: 200,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (ragSources.length > 0) {
+    apiResponse.headers.set(
+      "x-rag-sources",
+      sanitizeHeaderValue(JSON.stringify(ragSources)),
+    );
+  }
+
+  apiResponse.headers.set("X-Debug-Data", sanitizeHeaderValue(debugData));
+  return apiResponse;
+}
+
+function buildErrorResponse(): Response {
+  const errorResponse = {
+    response:
+      "Sorry, there was an issue processing your request. Please try again later.",
+    thinking: "Error occurred during message generation.",
+    user_mood: "neutral",
+    debug: { context_used: false },
+  };
+  return new Response(JSON.stringify(errorResponse), {
+    status: 500,
+    headers: { "Content-Type": "application/json" },
+  });
 }
