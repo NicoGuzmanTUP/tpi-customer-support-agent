@@ -1,277 +1,138 @@
-# Claude Customer Support Agent
+# TPI Metodología de Sistemas II: refactoring de un agente de soporte
 
-An advanced, fully customizable customer support chat interface powered by Claude and leveraging Amazon Bedrock Knowledge Bases for knowledge retrieval.
-![preview](tutorial/preview.png)
+Trabajo Práctico Integrador de Metodología de Sistemas II. Tecnicatura Universitaria en Programación a Distancia, UTN. Comisión 4. Entrega individual.
 
-## Key Features
+El trabajo toma un sistema existente, diagnostica su calidad interna y externa, identifica deuda técnica y code smells, y lo mejora con refactorings seguros, principios SOLID y Clean Code. Cada cambio se verifica con pruebas y se revisa con una checklist de code review.
 
--  AI-powered chat using Anthropic's Claude model
--  Amazon Bedrock integration for contextual knowledge retrieval
--  Real-time thinking & debug information display
--  Knowledge base source visualization
--  User mood detection & appropriate agent redirection
--  Highly customizable UI with shadcn/ui components
+## Origen
 
-##  Getting Started
+El sistema base es `customer-support-agent`, del proyecto de código abierto [anthropics/claude-quickstarts](https://github.com/anthropics/claude-quickstarts), commit `1a18c34`, con licencia MIT. Se agregó un módulo de incidencias para cumplir los requisitos de la consigna. Detalle en [`docs/ORIGEN.md`](docs/ORIGEN.md).
 
-1. Clone this repository
-2. Install dependencies: `npm install` (requires Node.js 20 or later; the app uses the Anthropic TypeScript SDK, `@anthropic-ai/sdk` v1.x)
-3. Set up your environment variables (see Configuration section)
-4. Run the development server: `npm run dev`
-5. Open [http://localhost:3000](http://localhost:3000) in your browser
+Este trabajo no es un proyecto oficial de Anthropic ni está avalado por esa empresa. El README original puede consultarse con `git show upstream-original:README.md`.
 
-## ⚙️ Configuration
+## Funcionalidades
 
-Create a `.env.local` file in the root directory with the following variables:
+- **Chat de soporte:** responde consultas con Claude, usando contexto de una base de conocimiento de Amazon Bedrock (RAG).
+- **Análisis de la consulta:** informa estado de ánimo del usuario, preguntas sugeridas y categorías.
+- **Derivación a un agente humano:** cuando corresponde, avisa al usuario y registra un ticket.
+- **Gestión de incidencias:** consultar, filtrar, asignar agentes y cambiar el estado de los tickets.
 
-```
-ANTHROPIC_API_KEY=your_anthropic_api_key
-BAWS_ACCESS_KEY_ID=your_aws_access_key
-BAWS_SECRET_ACCESS_KEY=your_aws_secret_key
-```
+Entidades del dominio de incidencias: `Ticket`, `Agente` y `EstadoTicket` (`abierto`, `en_progreso`, `resuelto`, `cerrado`). Los tickets se guardan en `data/tickets.json`.
 
-Note: We are adding a 'B' in front of the AWS environment variables for a reason that will be discussed later in the deployment section.
+## Tecnologías
 
-##  How to Get Your Keys
+- Next.js 14, React 18 y TypeScript.
+- SDK de Anthropic y cliente de Amazon Bedrock Agent Runtime.
+- zod para validar entradas y respuestas.
+- Vitest para pruebas y cobertura; ESLint y jscpd para métricas.
+- Tailwind CSS y componentes shadcn/ui.
 
-### Claude API Key
+## Instalación
 
-1. Visit [console.anthropic.com](https://console.anthropic.com/dashboard)
-2. Sign up or log in to your account
-3. Click on "Get API keys"
-4. Copy the key and paste it into your `.env.local` file
-
-### AWS Access Key and Secret Key
-
-Follow these steps to obtain your AWS credentials:
-
-1. Log in to the AWS Management Console
-2. Navigate to the IAM (Identity and Access Management) dashboard
-
-3. In the left sidebar, click on "Users"
-
-4. Click "Create user" and follow the prompts to create a new user
-   ![Add User](tutorial/create-user.png)
-5. On the Set Permission page, select the "Attach policies directly" policy
-   ![Attach Policy](tutorial/attach.png)
-5. On the permissions page, use the "AmazonBedrockFullAccess" policy
-   ![Attach Policy](tutorial/bedrock.png)
-6. Review and create the user
-7. On the Summary page, click on Create access key.
-8. Then select "Application running on an AWS compute service". Add a description if desired, then click "Create".
-9. You will now see the Access Key ID and Secret Access Key displayed. Note that these keys are only visible once during creation, so be sure to save them securely.
-   ![Access Keys](tutorial/access-keys.png)
-8. Copy these keys and paste them into your `.env.local` file
-
-Note: Make sure to keep your keys secure and never share them publicly.
-
-
-##  Amazon Bedrock RAG Integration
-
-This project utilizes Amazon Bedrock for Retrieval-Augmented Generation (RAG). To set up:
-
-1. Ensure you have an AWS account with Bedrock access.
-2. Create a Bedrock knowledge base in your desired AWS region.
-3. Index your documents/sources in the knowledge base. For more info on that, check the "How to Create Your Own Knowledge Base" section.
-4. In `ChatArea.tsx`, update the `knowledgeBases` array with your knowledge base IDs and names:
-
-```typescript
-const knowledgeBases: KnowledgeBase[] = [
-  { id: "your-knowledge-base-id", name: "Your KB Name" },
-  // Add more knowledge bases as needed
-];
-```
-
-The application will use these knowledge bases for context retrieval during conversations.
-
-### How to Create Your Own Knowledge Base
-
-To create your own knowledge base:
-
-1. Go to your AWS Console and select Amazon Bedrock.
-2. In the left side menu, click on "Knowledge base" under "More".
-
-3. Click on "Create knowledge base".
-   ![Create Knowledge Base](tutorial/create-knowledge-base.png)
-4. Give your knowledge base a name. You can leave "Create a new service role".
-5. Choose a source for your knowledge base. In this example, we'll use Amazon S3 storage service.
-   ![Choose Source](tutorial/choose-source.png)
-
-   Note: If you're using the S3 storage service, you'll need to create a bucket first where you will upload your files. Alternatively, you can also upload your files after the creation of a knowledge base.
-
-6. Click "Next".
-7. Choose a location for your knowledge base. This can be S3 buckets, folders, or even single documents.
-8. Click "Next".
-9. Select your preferred embedding model. In this case, we'll use Titan Text Embeddings 2.
-10. Select "Quick create a new vector store".
-11. Confirm and create your knowledge base.
-12. Once you have done this, get your knowledge base ID from the knowledge base overview.
-
-
-##  Switching Models
-
-This project supports multiple Claude models. To switch between models:
-
-1. In `ChatArea.tsx`, the `models` array defines available models:
-
-```typescript
-const models: Model[] = [
-  { id: "claude-haiku-4-5-20251001", name: "Claude Haiku 4.5" },
-  { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6" },
-  // Add more models as needed
-];
-```
-
-2. The `selectedModel` state variable controls the currently selected model:
-
-```typescript
-const [selectedModel, setSelectedModel] = useState("claude-haiku-4-5-20251001");
-```
-
-3. To implement model switching in the UI, a dropdown component is used that updates the `selectedModel`.
-
-
-##  Customization
-
-This project leverages shadcn/ui components, offering a high degree of customization:
-
-* Modify the UI components in the `components/ui` directory
-* Adjust the theme in `app/globals.css`
-* Customize the layout and functionality in individual component files
-* Modify the theme colors and styles by editing the `styles/themes.js` file:
-
-```javascript
-// styles/themes.js
-export const themes = {
-  neutral: {
-    light: {
-      // Light mode colors for neutral theme
-    },
-    dark: {
-      // Dark mode colors for neutral theme
-    }
-  },
-  // Add more themes here
-};
-```
-You can add new themes or modify existing ones by adjusting the color values in this file.
-
-##  Deploy with AWS Amplify
-
-To deploy this application using AWS Amplify, follow these steps:
-
-1. Go to your AWS Console and select Amplify.
-2. Click on "Create new app" (image link to be added later).
-3. Select GitHub (or your preferred provider) as the source.
-4. Choose this repository.
-5. Edit the YAML file to contain:
-
-   ```yaml
-   version: 1
-   frontend:
-     phases:
-       preBuild:
-         commands:
-           - npm ci --cache .npm --prefer-offline
-       build:
-         commands:
-           - npm run build # Next.js build runs first
-           - echo "ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY" >> .env
-           - echo "KNOWLEDGE_BASE_ID=$KNOWLEDGE_BASE_ID" >> .env
-           - echo "BAWS_ACCESS_KEY_ID=$BAWS_ACCESS_KEY_ID" >> .env
-           - echo "BAWS_SECRET_ACCESS_KEY=$BAWS_SECRET_ACCESS_KEY" >> .env
-     artifacts:
-       baseDirectory: .next
-       files:
-         - "**/*"
-     cache:
-       paths:
-         - .next/cache/**/*
-         - .npm/**/*
-   ```
-
-6. Choose to create a new service role or use an existing one. Refer to the "Service Role" section for more information.
-7. Click on "Advanced settings" and add your environmental variables:
-
-   ```
-   ANTHROPIC_API_KEY=your_anthropic_api_key
-   BAWS_ACCESS_KEY_ID=your_aws_access_key
-   BAWS_SECRET_ACCESS_KEY=your_aws_secret_key
-   ```
-   The reason we are adding a 'B' in front of the keys here is because AWS doesn't allow keys in Amplify to start with "AWS".
-
-8. Click "Save and deploy" to start the deployment process.
-
-Your application will now be deployed using AWS Amplify.
-
-
-### Service Role
-
-Once your application is deployed, if you selected to create a new service role:
-
-1. Go to your deployments page
-2. Select the deployment you just created
-3. Click on "App settings"
-4. Copy the Service role ARN
-5. Go to the IAM console and find this role
-6. Attach the "AmazonBedrockFullAccess" policy to the role
-
-This ensures that your Amplify app has the necessary permissions to interact with Amazon Bedrock.
-
-##  Customized Deployment and Development
-This project now supports flexible deployment and development configurations, allowing you to include or exclude specific components (left sidebar, right sidebar) based on your needs.
-Configuration
-The inclusion of sidebars is controlled by a config.ts file, which uses environment variables to set the configuration:
-```typescript
-typescriptCopytype Config = {
-  includeLeftSidebar: boolean;
-  includeRightSidebar: boolean;
-};
-
-const config: Config = {
-  includeLeftSidebar: process.env.NEXT_PUBLIC_INCLUDE_LEFT_SIDEBAR === "true",
-  includeRightSidebar: process.env.NEXT_PUBLIC_INCLUDE_RIGHT_SIDEBAR === "true",
-};
-
-export default config;
-```
-
-This configuration uses two environment variables:
-
-NEXT_PUBLIC_INCLUDE_LEFT_SIDEBAR: Set to "true" to include the left sidebar
-NEXT_PUBLIC_INCLUDE_RIGHT_SIDEBAR: Set to "true" to include the right sidebar
-
-## NPM Scripts
-The package.json includes several new scripts for different configurations:
+Requisitos: Node.js 20 o superior.
 
 ```bash
-npm run dev: Runs the full app with both sidebars (default)
-npm run build: Builds the full app with both sidebars (default)
-npm run dev:full: Same as npm run dev
-npm run dev:left: Runs the app with only the left sidebar
-npm run dev:right: Runs the app with only the right sidebar
-npm run dev:chat: Runs the app with just the chat area (no sidebars)
-npm run build:full: Same as npm run build
-npm run build:left: Builds the app with only the left sidebar
-npm run build:right: Builds the app with only the right sidebar
-npm run build:chat: Builds the app with just the chat area (no sidebars)
+npm install
 ```
 
-Usage
-To use a specific configuration:
+## Uso
 
-For development: Run the desired script (e.g., npm run dev:left)
-For production: Build with the desired script (e.g., npm run build:right)
+### Sin API key (modelo simulado)
 
-These scripts set the appropriate environment variables before running or building the application, allowing you to easily switch between different configurations.
-This flexibility allows you to tailor the application's layout to your specific needs, whether for testing, development, or production deployment.
+`scripts/modelo-falso.mjs` imita la API de Anthropic. Permite usar la aplicación completa sin credenciales.
 
-## Appendix
+```bash
+node scripts/modelo-falso.mjs
+```
 
-This project is a prototype and is provided on an "as-is" basis. It is not intended for production use and may contain bugs, errors, or inconsistencies. By using this prototype, you acknowledge and agree that:
-- The software is provided in a pre-release, beta, or trial form.
-- It may not be suitable for production or mission-critical environments.
-- The developers are not responsible for any issues, data loss, or damages resulting from its use.
-- No warranties or guarantees of any kind are provided, either expressed or implied.
-- Support for this prototype may be limited or unavailable.
-- Use of this prototype is at your own risk. We encourage you to report any issues or provide feedback to help improve future versions.
+En otra terminal:
+
+```bash
+ANTHROPIC_API_KEY=falsa ANTHROPIC_BASE_URL=http://localhost:4599 npm run dev
+```
+
+Abrir `http://localhost:3000`. Los escenarios disponibles están en [`docs/calidad-externa.md`](docs/calidad-externa.md).
+
+### Con credenciales reales
+
+Crear `.env.local`:
+
+```
+ANTHROPIC_API_KEY=...
+BAWS_ACCESS_KEY_ID=...
+BAWS_SECRET_ACCESS_KEY=...
+BEDROCK_REGION=us-east-1
+```
+
+Luego ejecutar `npm run dev`. `BEDROCK_REGION` es opcional; su valor por defecto es `us-east-1`. Sin credenciales de AWS, el chat funciona sin contexto de la base de conocimiento.
+
+## API
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| `POST` | `/api/chat` | Recibe `messages`, `model` y `knowledgeBaseId`. Responde 200, 400 si el pedido es inválido o 500 si falla el modelo. |
+| `GET` | `/api/tickets` | Lista tickets. Filtros opcionales: `estado`, `agenteId` y `texto`. |
+| `PATCH` | `/api/tickets/{id}` | Recibe `{ "estado": ... }` o `{ "agenteId": ... }`. Responde 400, 404 o 409 ante errores. |
+
+## Pruebas y análisis
+
+| Comando | Qué hace |
+|---|---|
+| `npm test` | Ejecuta las 34 pruebas. |
+| `npm run coverage` | Pruebas con reporte de cobertura. |
+| `npm run analisis:metricas` | Complejidad, longitud de funciones, profundidad y números mágicos. |
+| `npm run analisis:dup` | Duplicación de código con jscpd. |
+| `npm run analisis:any` | Usos de `any`. |
+| `scripts/comparar-versiones.sh todo` | Ejecuta las pruebas sobre la versión inicial y la refactorizada. |
+| `scripts/escenarios-externos.sh <url>` | Prueba la API como cliente externo. |
+
+## Estructura
+
+```
+app/
+  api/chat/route.ts        Conecta los adaptadores con el handler del chat
+  api/tickets/             Rutas de incidencias
+  lib/chat/                Handler, prompt, interfaces, adaptador de Anthropic y modelos
+  lib/rag.ts               Recuperación de contexto desde Bedrock
+  lib/incidencias.ts       Dominio y persistencia de incidencias
+components/                Interfaz de usuario
+data/agentes.json          Agentes con datos sintéticos
+docs/                      Documentación y evidencias del TPI
+scripts/                   Comparación de versiones, modelo simulado y escenarios externos
+tests/                     Pruebas de caracterización, del handler y de incidencias
+```
+
+## Documentación del TPI
+
+| Etapa | Documento |
+|---|---|
+| 1. Sistema base | [`docs/ORIGEN.md`](docs/ORIGEN.md) |
+| 2 y 3. Calidad externa e interna, deuda técnica y code smells | [`docs/diagnostico.md`](docs/diagnostico.md), [`docs/calidad-externa.md`](docs/calidad-externa.md) |
+| 4 y 5. SOLID, Clean Code y refactoring seguro | [`docs/refactorings.md`](docs/refactorings.md) |
+| 6. Pruebas y verificación | [`docs/pruebas.md`](docs/pruebas.md) |
+| 7. Code review | [`docs/code-review.md`](docs/code-review.md) |
+| 8. Conclusiones | [`docs/conclusiones.md`](docs/conclusiones.md) |
+| Uso de IA | [`docs/ia/registro-prompts.md`](docs/ia/registro-prompts.md) |
+| Evidencias | [`docs/evidencias/`](docs/evidencias/) |
+
+## Tags
+
+| Tag | Hito |
+|---|---|
+| `upstream-original` | Código original sin cambios |
+| `estado-inicial` | Sistema base del TPI |
+| `etapa-diagnostico` | Pruebas de caracterización y diagnóstico |
+| `etapa-refactoring` | Refactorings y correcciones |
+| `etapa-pruebas` | Evidencia de verificación antes y después |
+| `etapa-docs` | Documentación final |
+| `estado-refactorizado` y `estadorefactorizado` | Estado final del código |
+
+`estadorefactorizado` existe porque la consigna escribe el tag sin guion. Ambos apuntan al mismo commit.
+
+## Uso de inteligencia artificial
+
+Se usó Claude Code durante todo el trabajo. La herramienta, la finalidad y el grado de intervención de cada interacción están en [`docs/ia/registro-prompts.md`](docs/ia/registro-prompts.md).
+
+## Licencia
+
+MIT. Ver [`LICENSE`](LICENSE).

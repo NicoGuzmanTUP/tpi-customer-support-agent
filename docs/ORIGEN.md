@@ -7,8 +7,9 @@ Este trabajo no es un proyecto oficial de Anthropic ni está avalado por esa emp
 ## Trazabilidad
 
 - Tag `upstream-original`: copia sin cambios del código original, más el archivo `LICENSE` tomado de la raíz del repositorio de origen. El historial original no se conserva.
-- Tag `estado-inicial`: sistema base del TPI, que agrega al código original el módulo de incidencias. Pendiente de crear.
-- Tag `estado-refactorizado`: estado final del código. Pendiente de crear.
+- Tag `estado-inicial`: sistema base del TPI, que agrega al código original el módulo de incidencias.
+- Tags `estado-refactorizado` y `estadorefactorizado`: estado final del código.
+- Los tags de cada etapa se listan en el `README.md`.
 
 Las diferencias entre el código original y el sistema base pueden consultarse con:
 
