@@ -1,0 +1,36 @@
+  ▲ Next.js 14.2.5
+
+   Creating an optimized production build ...
+Browserslist: caniuse-lite is outdated. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+   Collecting page data ...
+🔑 Have AWS AccessKey? false
+🔑 Have AWS Secret? false
+   Generating static pages (0/6) ...
+   Generating static pages (1/6) 
+   Generating static pages (2/6) 
+   Generating static pages (4/6) 
+🔑 Have AWS AccessKey? false
+🔑 Have AWS Secret? false
+ ✓ Generating static pages (6/6)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                              Size     First Load JS
+┌ ○ /                                    192 kB          279 kB
+├ ○ /_not-found                          871 B            88 kB
+├ ƒ /api/chat                            0 B                0 B
+├ ƒ /api/tickets                         0 B                0 B
+└ ƒ /api/tickets/[id]                    0 B                0 B
++ First Load JS shared by all            87.1 kB
+  ├ chunks/23-82c7f9cb13bcac3f.js        31.5 kB
+  ├ chunks/fd9d1056-82fc2a82826c61b9.js  53.6 kB
+  └ other shared chunks (total)          1.97 kB
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
