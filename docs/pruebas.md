@@ -12,7 +12,10 @@ Los IDs `CS-xx` son code smells definidos en `docs/diagnostico.md`, sección 3. 
 4. **Ejecución cruzada.** La misma suite se ejecuta sobre la versión inicial y sobre la refactorizada.
 5. **Una prueba verde por commit.** Cada commit de refactor se verificó con `npm test` antes de continuar.
 
-Limitación: las pruebas no llaman al modelo real ni a Bedrock. Validan la lógica de la aplicación, no la calidad de las respuestas del modelo.
+Limitaciones:
+
+- Las pruebas no llaman al modelo real ni a Bedrock. Validan la lógica de la aplicación, no la calidad de las respuestas del modelo.
+- La interfaz (`components/`) no tiene pruebas automáticas. Queda fuera del alcance del refactor y su comportamiento solo se observó a mano.
 
 ## Ejecución cruzada
 
@@ -98,7 +101,7 @@ Evidencias en `evidencias/estado-inicial/` y `evidencias/estado-final/`.
 | Complejidad ciclomática del handler | 14 | 3 |
 | Advertencias de métricas en el backend (`app/`) | 12 | 1 |
 | Advertencias de métricas en todo el proyecto | 47 | 36 |
-| Usos de `any` | 17 | 12, todos en `components/` |
+| Usos de `any` | 17 | 11, todos en `components/` |
 | Duplicación textual (jscpd) | 0 % | 0 % |
 | Cobertura de ramas | 88,78 % | 94,01 % |
 | Cobertura de líneas | 97,56 % | 93,91 % |
@@ -114,4 +117,5 @@ La advertencia restante del backend es `buildSystemPrompt`, cuyas líneas son ca
 |---|---|---|
 | `tsc --noEmit` | Sin errores | `evidencias/estado-final/00-typecheck.log` |
 | `next lint` | Sin advertencias | `evidencias/estado-final/00-next-lint.log` |
-| `next build` | Compila las 5 rutas | Ejecución manual |
+| `next build` | Compila las 5 rutas | `evidencias/estado-final/06-next-build.log` |
+| Escenarios como cliente externo (caja negra) | Misma conducta en ambas versiones, salvo las 3 correcciones deliberadas: pedido sin mensajes pasa de 500 a 400, el encabezado `X-Debug-Data` ya no incluye la key y se rechaza un modelo no permitido | `evidencias/calidad-externa/escenarios-estado-inicial.log` y `escenarios-estado-final.log` |
