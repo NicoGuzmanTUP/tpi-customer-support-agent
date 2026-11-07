@@ -10,7 +10,9 @@ Proceso:
 4. Corregir las observaciones aceptadas en commits que citan su ID.
 5. Verificar los criterios de aceptación sobre la versión corregida.
 
-Limitación: la entrega es individual, así que no hubo un revisor humano distinto del autor. Se usó Claude Code como segundo revisor, según lo declarado en `docs/ia/registro-prompts.md`. La revisión se hizo con una checklist fija para reducir el sesgo del autor.
+Revisores: el estudiante revisó y aprobó los cambios producidos por la IA, sección por sección, en la sesión 4 de `docs/ia/registro-prompts.md`. Claude Code actuó como segundo revisor. La revisión se hizo con una checklist fija para reducir el sesgo del autor.
+
+Limitación: la entrega es individual y no participó un revisor externo al trabajo.
 
 ## 1. Checklist técnica
 
@@ -29,13 +31,13 @@ La columna "Observaciones" cita IDs `OR-xx` (observaciones de revisión). Cada u
 | 7 | Diseño y arquitectura | ¿Hay duplicación (DRY)? | Sí | OR-05 |
 | 8 | Diseño y arquitectura | ¿Depende de abstracciones (DIP)? | Sí | El handler recibe `ContextRetriever`, `ModelClient` y `TicketCreator` |
 | 9 | Diseño y arquitectura | ¿Está en la capa correcta? | Sí | UI en `components/`, lógica en `app/lib/`, rutas HTTP en `app/api/` |
-| 10 | Seguridad | ¿Hay datos sensibles expuestos en respuestas o logs? | Sí | OR-06, OR-07 |
+| 10 | Seguridad | ¿Hay datos sensibles expuestos en respuestas o logs? | Parcial | OR-06, OR-07, OR-14 |
 | 11 | Seguridad | ¿Se valida la entrada externa? | Sí | Cuerpo del chat, modelo y filtros de tickets validados con zod |
 | 12 | Rendimiento | ¿Hay trabajo innecesario? | Sí | OR-08 |
 | 13 | Rendimiento | ¿Escala la persistencia? | No | OR-09 |
 | 14 | Manejo de errores | ¿Los errores tienen una forma coherente? | Parcial | OR-11 |
 | 15 | Pruebas | ¿Los cambios tienen pruebas y métricas confiables? | Sí | OR-10 |
-| 16 | Documentación | ¿El README describe el proyecto actual? | No | OR-13 |
+| 16 | Documentación | ¿El README describe el proyecto actual? | Sí, tras OR-13 | OR-13 |
 
 ## 2. Observaciones
 
@@ -50,12 +52,13 @@ Severidad: **Alta** bloquea la aprobación; **Media** debe resolverse o justific
 | OR-05 | Diseño (DRY) | `app/lib/chat/models.ts` y `components/ChatArea.tsx` | La lista de modelos estaba duplicada. Si se agrega un modelo en la UI y no en la API, la API lo rechaza. | Media | **Corregida**: `AVAILABLE_MODELS` es la única fuente |
 | OR-06 | Seguridad | `handler.ts`: logs de la consulta | Se registraba en consola el texto completo de cada consulta. Puede contener datos personales. | Media | **Corregida**: se registra solo la longitud |
 | OR-07 | Seguridad | `app/lib/rag.ts:13-20` | Usa aserciones `!` sobre credenciales de AWS y registra si existen. No expone valores, pero oculta una configuración incompleta. | Baja | Aceptada: sin credenciales la recuperación falla de forma controlada |
-| OR-08 | Rendimiento | `handler.ts`, `debugMessage` | `JSON.parse(JSON.stringify(data))` copiaba datos que luego se serializaban de nuevo. Además se limpiaban caracteres no ASCII de una fecha ISO, que siempre es ASCII. | Baja | **Corregida** |
+| OR-08 | Rendimiento | `handler.ts`, `debugMessage` | `JSON.parse(JSON.stringify(data))` copiaba datos que luego se serializaban de nuevo. Además se limpiaban caracteres no ASCII de una fecha ISO, que siempre es ASCII. Detectado después: `sanitizeHeaderValue` se aplicaba dos veces al mismo valor de `X-Debug-Data`. | Baja | **Corregida**, incluida la doble sanitización |
 | OR-09 | Rendimiento | `app/lib/incidencias.ts` | Cada operación lee y reescribe todo el archivo JSON. La cola solo serializa escrituras dentro de un proceso. | Media | Aceptada para el prototipo; documentada como mejora futura (base de datos) |
 | OR-10 | Pruebas | `app/lib/chat/ports.ts` | v8 informa 0 % de cobertura porque el archivo solo tiene interfaces, lo que baja la cobertura total. | Baja | Aceptada: explicada en `docs/pruebas.md` |
 | OR-11 | Manejo de errores | `buildErrorResponse` | La respuesta 500 no tiene `id` ni `suggested_questions`; la 400 tiene otra forma. | Media | Postergada: depende del contrato con la UI |
 | OR-12 | Diseño (SRP) | `app/lib/chat/handler.ts` (246 líneas) | Combina validación, flujo y armado de respuestas HTTP. | Baja | Postergada: separar los armadores de respuesta en otro módulo |
-| OR-13 | Documentación | `README.md` | Describe el quickstart original; no menciona el TPI, las pruebas ni los scripts. | Media | Se resuelve en la etapa de documentación |
+| OR-13 | Documentación | `README.md` | Describe el quickstart original; no menciona el TPI, las pruebas ni los scripts. | Media | **Corregida**: el README se reescribió en el commit `6315c31` |
+| OR-14 | Seguridad | `handler.ts`, `registerAgentRedirect`; `app/lib/rag.ts`, `retrieveContext` | Se registra en consola el motivo de la derivación (`redirect_to_agent.reason`), que redacta el modelo a partir de la consulta y puede contener datos del usuario. También se registran los fragmentos recuperados de la base de conocimiento. | Baja | Postergada: registrar solo la longitud del motivo y quitar el registro de los fragmentos |
 
 ## 3. Feedback profesional
 
@@ -78,7 +81,7 @@ Feedback sobre el refactor del handler de chat y el módulo de incidencias:
 | CA-05 | Los cambios de comportamiento tienen prueba propia | Corrida D: fallan solo las 4 pruebas de CS-08 y CS-10 | Cumple |
 | CA-06 | El backend no empeora sus métricas | `npm run analisis:metricas`: 1 advertencia en `app/`, igual que en `etapa-refactoring` | Cumple |
 | CA-07 | Sin `any` en el backend | `npm run analisis:any`: en `app/` solo aparece la palabra en un comentario y en el texto del prompt, no como tipo | Cumple |
-| CA-08 | Sin datos sensibles en respuestas ni logs | Revisión de `X-Debug-Data` y de los logs del handler | Cumple tras OR-06 |
+| CA-08 | Sin datos sensibles en respuestas ni logs | Revisión de `X-Debug-Data` y de los logs del handler | Cumple para las consultas del usuario tras OR-06. Parcial para el motivo de la derivación y los fragmentos RAG (OR-14, postergada) |
 | CA-09 | La aplicación compila para producción | `npx next build` | Cumple |
 | CA-10 | Observaciones de severidad alta resueltas | Tabla de observaciones | Cumple: no hubo de severidad alta |
 
@@ -90,6 +93,7 @@ Feedback sobre el refactor del handler de chat y el módulo de incidencias:
 | OR-04 | Constante `DEFAULT_REDIRECT_REASON`. |
 | OR-05 | `AVAILABLE_MODELS` en `app/lib/chat/models.ts`; la API deriva `ALLOWED_MODELS` y `ChatArea.tsx` importa la lista y el modelo por defecto. |
 | OR-06 | El handler registra la longitud de la consulta, no su texto. |
-| OR-08 | `debugMessage` serializa una sola vez. |
+| OR-08 | `debugMessage` serializa una sola vez y `buildSuccessResponse` ya no vuelve a sanitizar `X-Debug-Data`, que `buildDebugData` entrega sanitizado. Las 34 pruebas, `tsc` y `next lint` siguen en verde. |
+| OR-13 | El README describe el TPI: origen, funcionalidades, uso con y sin API key, API, pruebas y análisis, estructura, documentación por etapa y tags. |
 
 Todas las correcciones se verificaron con los criterios CA-01 a CA-09.
