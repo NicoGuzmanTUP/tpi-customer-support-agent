@@ -1,6 +1,6 @@
 # Refactorings y aplicación de SOLID y Clean Code
 
-Rango: `etapa-diagnostico..etapa-refactoring`. Cada commit deja las pruebas en verde. Los IDs `CS-xx` remiten a `docs/diagnostico.md`.
+Rango: `etapa-diagnostico..etapa-refactoring`. Cada commit deja las pruebas en verde. Los IDs `CS-xx` son code smells definidos en `docs/diagnostico.md`, sección 3.
 
 ## Red de seguridad
 

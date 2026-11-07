@@ -2,6 +2,8 @@
 
 Objetivo: demostrar que el refactor no alteró el comportamiento externo y que los únicos cambios observables son las dos correcciones intencionales.
 
+Los IDs `CS-xx` son code smells definidos en `docs/diagnostico.md`, sección 3. Los IDs de casos de prueba (`CH-xx`, `HD-xx` e `IN-xx`) se definen en la sección "Casos de prueba" de este documento.
+
 ## Estrategia
 
 1. **Pruebas de caracterización.** Antes de refactorizar se escribieron pruebas que describen el comportamiento de `estado-inicial`, incluido un comportamiento no deseado (CS-08).

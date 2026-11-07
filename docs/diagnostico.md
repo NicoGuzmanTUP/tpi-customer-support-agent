@@ -2,6 +2,8 @@
 
 Versión analizada: tag `estado-inicial`. Las evidencias están en `docs/evidencias/estado-inicial/`.
 
+Los IDs `CS-xx` (code smells) que aparecen en las secciones 1 y 2 se definen en la sección 3.
+
 Alcance del refactor: `app/api/chat/route.ts`, `app/lib/utils.ts` y `app/lib/incidencias.ts`. Los componentes de interfaz (`components/`) se analizan, pero quedan fuera del refactor por tiempo y por falta de pruebas de interfaz.
 
 ## 1. Calidad externa
@@ -40,7 +42,7 @@ El buen funcionamiento externo oculta una estructura difícil de mantener:
 | Duplicación textual (jscpd) | 0 % | 5 % | `04-duplicacion-jscpd.log` |
 | Cobertura de líneas en el alcance | 97,56 % | - | `02-coverage.log` |
 
-jscpd no detecta clones textuales. La duplicación existe, pero es estructural: funciones y tipos repetidos con pequeñas diferencias (ver CS-03).
+jscpd no detecta clones textuales. La duplicación existe, pero es estructural: funciones y tipos repetidos con pequeñas diferencias (ver CS-03 en la sección 3).
 
 Relación con la mantenibilidad: cambiar el prompt, el proveedor del modelo o la forma de la respuesta obliga hoy a modificar la misma función de 197 líneas. Las dependencias externas se crean al importar los módulos, así que probarlos exige reemplazar módulos completos. Esto aumenta el costo de cada cambio y el riesgo de regresiones.
 
