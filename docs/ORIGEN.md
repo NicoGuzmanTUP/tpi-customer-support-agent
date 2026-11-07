@@ -4,6 +4,34 @@ Este repositorio parte de la carpeta `customer-support-agent` del proyecto de c�
 
 Este trabajo no es un proyecto oficial de Anthropic ni está avalado por esa empresa.
 
+## Dominio, actores y alcance
+
+**Dominio.** Soporte al cliente. Un chat con un modelo de IA responde consultas y, cuando corresponde, deriva el caso a un agente humano mediante un ticket de incidencia.
+
+**Actores.**
+
+- Usuario final: escribe consultas en el chat.
+- Agente humano: recibe los tickets derivados, se le asignan y cambia su estado.
+- Modelo de IA (Claude) y base de conocimiento (Amazon Bedrock): sistemas externos que generan la respuesta y aportan contexto.
+
+**Entidades.** `Ticket` y `Agente` son las entidades persistentes. El mensaje de chat es la entrada del flujo principal. `EstadoTicket` es un tipo que modela el ciclo de vida del ticket (`abierto`, `en_progreso`, `resuelto`, `cerrado`) y sus transiciones válidas.
+
+**Operaciones verificables.**
+
+1. Consultar al chat y recibir respuesta, estado de ánimo y preguntas sugeridas.
+2. Crear un ticket al derivar a un agente humano.
+3. Cambiar el estado de un ticket.
+4. Asignar un agente a un ticket.
+5. Buscar y filtrar tickets por estado, agente y texto.
+
+**Persistencia.** Los tickets se guardan en `data/tickets.json`; los agentes, con datos sintéticos, en `data/agentes.json`.
+
+**Alcance del trabajo.** El TPI analiza y refactoriza el backend: `app/api/` y `app/lib/`. La interfaz (`components/`) se diagnostica pero queda fuera del refactor, por falta de pruebas de interfaz y por tiempo.
+
+**Versión inicial.** Tag `estado-inicial`. Evidencia de funcionamiento: `docs/evidencias/estado-inicial/` y `docs/evidencias/calidad-externa/escenarios-estado-inicial.log`.
+
+**Tecnología.** Next.js 14, React 18, TypeScript, SDK de Anthropic, cliente de Amazon Bedrock Agent Runtime, zod, Vitest, Tailwind CSS y shadcn/ui.
+
 ## Trazabilidad
 
 - Tag `upstream-original`: copia sin cambios del código original, más el archivo `LICENSE` tomado de la raíz del repositorio de origen. El historial original no se conserva.
