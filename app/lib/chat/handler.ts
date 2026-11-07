@@ -16,14 +16,12 @@ const MAX_DEBUG_LENGTH = 1000;
 const MS_PER_SECOND = 1000;
 const SECONDS_DECIMALS = 2;
 
-// Debug message helper function
-// Input: message string and optional data object
-// Output: JSON string with message, sanitized data, and timestamp
+const DEFAULT_REDIRECT_REASON = "Sin motivo informado";
+
 const debugMessage = (msg: string, data: Record<string, unknown> = {}) => {
   console.log(msg, data);
-  const timestamp = new Date().toISOString().replace(/[^\x20-\x7E]/g, "");
-  const safeData = JSON.parse(JSON.stringify(data));
-  return JSON.stringify({ msg, data: safeData, timestamp });
+  const timestamp = new Date().toISOString();
+  return JSON.stringify({ msg, data, timestamp });
 };
 
 // Define the schema for the AI response using Zod
@@ -52,16 +50,11 @@ const responseSchema = z.object({
     .optional(),
 });
 
-// Helper function to sanitize header values
-// Input: string value
-// Output: sanitized string (ASCII characters only)
+// HTTP header values must be ASCII.
 function sanitizeHeaderValue(value: string): string {
   return value.replace(/[^\x00-\x7F]/g, "");
 }
 
-// Helper function to log timestamps for performance measurement
-// Input: label string and start time
-// Output: Logs the duration for the labeled operation
 const logTimestamp = (label: string, start: number) => {
   const timestamp = new Date().toISOString();
   const time = ((performance.now() - start) / MS_PER_SECOND).toFixed(
@@ -99,7 +92,8 @@ export function createChatHandler(deps: ChatDependencies) {
     const { messages, model, knowledgeBaseId } = request.data;
     const latestMessage = messages[messages.length - 1].content;
 
-    console.log("📝 Latest Query:", latestMessage);
+    // Only the length is logged, to keep user content out of server logs.
+    console.log("📝 Latest Query length:", latestMessage.length);
     measureTime("User Input Received");
 
     const debugData = buildDebugData(messages.length, latestMessage);
@@ -158,7 +152,7 @@ async function retrieveRagContext(
   query: string,
   knowledgeBaseId: string,
 ) {
-  console.log("🔍 Initiating RAG retrieval for query:", query);
+  console.log("🔍 Initiating RAG retrieval");
   const result = await retriever.retrieve(query, knowledgeBaseId);
   if (!result.isRagWorking) {
     console.warn("🚨 RAG Retrieval failed but did not throw!");
@@ -203,7 +197,7 @@ async function registerAgentRedirect(
   try {
     await tickets.create(
       latestMessage,
-      chatResponse.redirect_to_agent.reason ?? "Sin motivo informado",
+      chatResponse.redirect_to_agent.reason ?? DEFAULT_REDIRECT_REASON,
     );
   } catch (ticketError) {
     console.error("Error creating ticket:", ticketError);
