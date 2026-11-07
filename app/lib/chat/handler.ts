@@ -223,7 +223,7 @@ function buildSuccessResponse(
     );
   }
 
-  apiResponse.headers.set("X-Debug-Data", sanitizeHeaderValue(debugData));
+  apiResponse.headers.set("X-Debug-Data", debugData);
   return apiResponse;
 }
 
