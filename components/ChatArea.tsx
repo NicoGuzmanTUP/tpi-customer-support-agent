@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import config from "@/config";
+import { AVAILABLE_MODELS, DEFAULT_MODEL_ID } from "@/app/lib/chat/models";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ReactMarkdown from "react-markdown";
@@ -302,7 +303,7 @@ function ChatArea() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showHeader, setShowHeader] = useState(false);
-  const [selectedModel, setSelectedModel] = useState("claude-haiku-4-5-20251001");
+  const [selectedModel, setSelectedModel] = useState<string>(DEFAULT_MODEL_ID);
   const [showAvatar, setShowAvatar] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -315,10 +316,7 @@ function ChatArea() {
     // Add more knowledge bases as needed
   ];
 
-  const models: Model[] = [
-    { id: "claude-haiku-4-5-20251001", name: "Claude Haiku 4.5" },
-    { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6" },
-  ];
+  const models: Model[] = [...AVAILABLE_MODELS];
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
