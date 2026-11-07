@@ -16,6 +16,8 @@ La calidad externa se evaluó como caja negra, desde la interfaz y desde la API,
 | Adecuación funcional | Pedido de agente humano | 200, aviso de derivación y ticket abierto en `/api/tickets` | Cumple |
 | Adecuación funcional | Asignar agente y cambiar estado | 200 en cambios válidos; 409 al cerrar un ticket en progreso | Cumple |
 | Fiabilidad | Base de conocimiento sin credenciales AWS | 200 sin contexto, en menos de 0,1 s | Cumple: degradación controlada |
+| Rendimiento | Tiempo de respuesta ante la falla de Bedrock (mismo escenario que la fila anterior) | Menos de 0,1 s, con el modelo simulado | Cumple en el único caso medido. La latencia con el modelo real no se evaluó |
+| Usabilidad | Interfaz de chat | No evaluada: la interfaz queda fuera del alcance y no hay pruebas de interfaz | No evaluada |
 | Fiabilidad | El modelo no responde JSON | 500 con mensaje comprensible | Cumple |
 | Fiabilidad | Falla del proveedor del modelo | 500 con mensaje comprensible | Cumple |
 | Robustez de la API | Pedido sin mensajes | 500 con cuerpo vacío: error no controlado | No cumple |
@@ -24,7 +26,9 @@ La calidad externa se evaluó como caja negra, desde la interfaz y desde la API,
 
 Conclusión: desde la mirada del usuario, el sistema funciona y tolera fallas de sus dependencias. Sin embargo, un cliente externo puede observar tres defectos. Los tres tienen causa interna: la lectura del cuerpo fuera del `try` (CS-08), la construcción del encabezado de depuración y la falta de validación de entrada (CS-10). Esto muestra la relación entre ambas calidades: un problema interno termina siendo visible desde afuera.
 
-Evidencia complementaria: 29 pruebas de caracterización pasan (`01-tests.log`).
+Evidencia complementaria: 29 pruebas de caracterización pasan (`01-tests.log`). Más adelante se agregó un snapshot del system prompt, por eso `docs/pruebas.md` cuenta 30 en la corrida A.
+
+Atributos de calidad externa del material de la cátedra: eficacia (adecuación funcional), fiabilidad, usabilidad y rendimiento. La robustez y la seguridad se agregan porque la API también tiene clientes externos.
 
 Limitación: con el modelo falso no se evalúa la calidad de las respuestas del modelo real (precisión, tono ni clasificación), sino el comportamiento de la aplicación ante cada tipo de respuesta.
 
@@ -44,7 +48,18 @@ El buen funcionamiento externo oculta una estructura difícil de mantener:
 
 jscpd no detecta clones textuales. La duplicación existe, pero es estructural: funciones y tipos repetidos con pequeñas diferencias (ver CS-03 en la sección 3).
 
+Atributos de calidad interna del material de la cátedra y dónde se observan:
+
+| Atributo | Dónde se observa | Evidencia |
+|---|---|---|
+| Legibilidad | `POST` con 197 líneas y complejidad 14; 24 números mágicos (CS-01, CS-05) | Métricas de la tabla anterior |
+| Cohesión | `app/lib/utils.ts` mezcla estilos de UI con el cliente de Bedrock (CS-02) | Sección 3 |
+| Acoplamiento | Los clientes de Anthropic y Bedrock se crean al importar el módulo (CS-04) | Sección 3 |
+| Testabilidad | Las pruebas necesitan `vi.mock` para reemplazar módulos enteros (CS-04) | Sección 3 |
+
 Relación con la mantenibilidad: cambiar el prompt, el proveedor del modelo o la forma de la respuesta obliga hoy a modificar la misma función de 197 líneas. Las dependencias externas se crean al importar los módulos, así que probarlos exige reemplazar módulos completos. Esto aumenta el costo de cada cambio y el riesgo de regresiones.
+
+Resultado después del refactor (`etapa-refactoring`): la calidad externa se conserva, salvo las tres correcciones deliberadas, y la calidad interna mejora. Por ejemplo, el handler pasa de 197 a 47 líneas y de complejidad 14 a 3. La comparación completa está en `docs/pruebas.md` y `docs/refactorings.md`.
 
 ## 3. Code smells y debilidades técnicas
 
@@ -62,9 +77,14 @@ Prioridad: **Alta** si afecta seguridad, corrección o bloquea otros refactors; 
 | CS-08 | Manejo de errores inconsistente | `app/api/chat/route.ts:70-71`, `:110-116`, `:300` | La lectura del cuerpo está fuera del `try`: un pedido sin mensajes rechaza la promesa (prueba "rechaza la promesa"). `retrieveContext` ya captura sus errores, así que el `catch` de `:110-116` es inalcanzable (líneas sin cubrir). El error 500 no tiene `id` ni `suggested_questions`. | Errores no controlados y respuestas con forma distinta. | El cliente debe contemplar dos formatos. | Alta |
 | CS-09 | Tipado débil | `app/lib/utils.ts:64-83`, `app/api/chat/route.ts:15`, `:218`, `components/` | 17 usos de `any` (uno de ellos es texto del prompt). | El compilador no detecta errores de forma. | Fallas en tiempo de ejecución. | Media |
 | CS-10 | Exposición de información y entrada sin validar | `app/api/chat/route.ts:70`, `:82`, `:230`, `:292` | El encabezado `X-Debug-Data`, enviado al navegador, incluye el prefijo de la API key. El modelo llega del cliente y se usa sin validar. Se registran las consultas del usuario en consola. | Riesgo de seguridad y de costos. | Difícil de auditar. | Alta |
-| CS-11 | God Component (fuera del alcance) | `components/ChatArea.tsx` | Archivo de 653 líneas; `ChatArea` tiene 380 líneas y su envío de mensajes tiene complejidad 11. | Interfaz difícil de modificar. | Alto, pero sin pruebas de UI. | Media, se posterga |
+| CS-11 | God Component (fuera del alcance) | `components/ChatArea.tsx` | Archivo de 724 líneas; `ChatArea` tiene 380 líneas y su envío de mensajes tiene complejidad 11. | Interfaz difícil de modificar. | Alto, pero sin pruebas de UI. | Media, se posterga |
 | CS-12 | Acoplamiento por eventos globales (fuera del alcance) | `components/ChatArea.tsx:354-379`, `components/RightSidebar.tsx:103-117` | Los componentes se comunican con eventos de `window` y `as any`. | Dependencias implícitas entre componentes. | Cambios en un evento rompen otro componente sin aviso. | Baja, se posterga |
 | CS-13 | Condición compleja en el filtro | `app/lib/incidencias.ts:176` | Complejidad 7 en un solo predicado de filtrado. | Menor legibilidad. | Bajo. | Baja |
+
+Smells del material que no se registraron como hallazgo propio:
+
+- **Long Parameter List:** no aplica. En `estado-inicial` ninguna función supera 3 parámetros (`retrieveContext` tiene el máximo). El Parameter Object de R3 se aplicó igualmente para agrupar los datos del prompt.
+- **Primitive Obsession:** no se registra por separado. El estado del ticket ya es un tipo restringido (`EstadoTicket`). El caso más cercano es `model` como `string` sin validar, que se trata como validación de entrada en CS-10.
 
 ## 4. Prioridad de corrección
 
